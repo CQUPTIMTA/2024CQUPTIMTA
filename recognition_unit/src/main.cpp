@@ -1,18 +1,16 @@
 #include <Arduino.h>
-
-// put function declarations here:
-int myFunction(int, int);
+#include "ESP32FLASHEEPROM.hpp"
+ESP32FLASHEEPROM flash_data();
+#include "SENSOR.hpp"
+SENSOR font_sensor(15, 2);
+SENSOR back_sensor(15, 2);
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  font_sensor.setup();
+  back_sensor.setup();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+
 }
 
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
-}
