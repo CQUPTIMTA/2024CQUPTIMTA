@@ -6,6 +6,8 @@ SENSOR font_sensor(15, 2);
 SENSOR back_sensor(15, 2);
 
 void setup() {
+  flash_data.setup();
+  flash_data.read();
   font_sensor.setup();
   back_sensor.setup();
 }
