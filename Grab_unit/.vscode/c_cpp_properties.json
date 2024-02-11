@@ -10,6 +10,7 @@
             "includePath": [
                 "F:/项目/2024物流起重机/代码/Grab_unit/include",
                 "F:/项目/2024物流起重机/代码/Grab_unit/src",
+                "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/EEPROM/src",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/newlib/platform_include",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/freertos/include",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/freertos/include/esp_additions/freertos",
@@ -208,7 +209,6 @@
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/BluetoothSerial/src",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/DNSServer/src",
-                "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/EEPROM/src",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/ESP32/src",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/ESPmDNS/src",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/Ethernet/src",
@@ -243,6 +243,7 @@
                 "path": [
                     "F:/项目/2024物流起重机/代码/Grab_unit/include",
                     "F:/项目/2024物流起重机/代码/Grab_unit/src",
+                    "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/EEPROM/src",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/newlib/platform_include",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/freertos/include",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/freertos/include/esp_additions/freertos",
@@ -441,7 +442,6 @@
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/BluetoothSerial/src",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/DNSServer/src",
-                    "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/EEPROM/src",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/ESP32/src",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/ESPmDNS/src",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/Ethernet/src",
