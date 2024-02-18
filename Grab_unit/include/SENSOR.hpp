@@ -13,7 +13,9 @@ class SENSOR{
       this->data_size = filter_size;       
     }
   };
-  ~SENSOR(){};
+  ~SENSOR(){
+    delete ft;
+  };
   int data_size;
   // 引脚初始化
   void setup(){
@@ -38,6 +40,7 @@ class SENSOR{
     }
     return this->distance;
   };
+  // set_sound_speed 函数设置声速
   void set_sound_speed(float sound_speed){
     if(sound_speed>300&&sound_speed<380){// 限制声速在合理范围
       this->sound_speed = sound_speed;
@@ -49,6 +52,6 @@ class SENSOR{
   float distance = 0.0;//测得距离,单位毫米
   int trigpin; // 定义trigpin为传感器触发引脚
   int echopin; // 定义echopin为传感器检测回波引脚
-  filter* ft ;
+  filter* ft ;//滤波器指针
 };
 #endif // SENSOR
