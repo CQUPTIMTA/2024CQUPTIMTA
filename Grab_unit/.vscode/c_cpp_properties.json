@@ -8,8 +8,8 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "F:/项目/2024物流起重机/代码/Grab_unit/include",
-                "F:/项目/2024物流起重机/代码/Grab_unit/src",
+                "F:/项目/2024 物流起重机/代码/Grab_unit/include",
+                "F:/项目/2024 物流起重机/代码/Grab_unit/src",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/EEPROM/src",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/newlib/platform_include",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/freertos/include",
@@ -203,7 +203,7 @@
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/fb_gfx/include",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/qio_qspi/include",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/cores/esp32",
-                "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/variants/esp32s3usbotg",
+                "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/variants/esp32s3",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/ArduinoOTA/src",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/AsyncUDP/src",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src",
@@ -241,8 +241,8 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "F:/项目/2024物流起重机/代码/Grab_unit/include",
-                    "F:/项目/2024物流起重机/代码/Grab_unit/src",
+                    "F:/项目/2024 物流起重机/代码/Grab_unit/include",
+                    "F:/项目/2024 物流起重机/代码/Grab_unit/src",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/EEPROM/src",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/newlib/platform_include",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/freertos/include",
@@ -436,7 +436,7 @@
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/fb_gfx/include",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/qio_qspi/include",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/cores/esp32",
-                    "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/variants/esp32s3usbotg",
+                    "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/variants/esp32s3",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/ArduinoOTA/src",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/AsyncUDP/src",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src",
@@ -473,10 +473,13 @@
                 ]
             },
             "defines": [
-                "PLATFORMIO=60113",
-                "ARDUINO_ESP32_S3_USB_OTG",
+                "PLATFORMIO=60114",
+                "ARDUINO_ESP32S3_DEV",
+                "ARDUINO_USB_MODE=1",
                 "ARDUINO_RUNNING_CORE=1",
                 "ARDUINO_EVENT_RUNNING_CORE=1",
+                "ARDUINO_USB_CDC_ON_BOOT=1",
+                "CORE_DEBUG_LEVEL=1",
                 "HAVE_CONFIG_H",
                 "MBEDTLS_CONFIG_FILE=\"mbedtls/esp_config.h\"",
                 "UNITY_INCLUDE_CONFIG_H",
@@ -489,9 +492,10 @@
                 "ESP32",
                 "F_CPU=240000000L",
                 "ARDUINO=10812",
-                "ARDUINO_VARIANT=\"esp32s3usbotg\"",
-                "ARDUINO_BOARD=\"Espressif ESP32-S3-USB-OTG\"",
+                "ARDUINO_VARIANT=\"esp32s3\"",
+                "ARDUINO_BOARD=\"Espressif ESP32-S3-DevKitM-1\"",
                 "ARDUINO_PARTITION_default",
+                "__PLATFORMIO_BUILD_DEBUG__",
                 ""
             ],
             "cStandard": "gnu99",
