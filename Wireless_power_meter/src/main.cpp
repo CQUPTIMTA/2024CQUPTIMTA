@@ -31,23 +31,36 @@ char names[6][20] =
 //     }
 //     last_io14state = io14state;
 // }
-double crurrent=0;
-double bus_voltage=0;
+float crurrent=0;
+float bus_voltage=0;
+bool IO5_FLAG=false;
+uint16_t row_data=0;
+uint16_t r=0;
+void io23interp(){
+  IO5_FLAG!=IO5_FLAG;
+  digitalWrite(5,IO5_FLAG);
+} 
+
+
+
 void setup() {
     Serial.begin(9600);
-
+    pinMode(23,PULLDOWN);
     Wire.begin(25,26);
     
     u8g2.begin();
-
+    
     u8g2.setFont(u8g2_font_10x20_me);
-    pinMode(12,OUTPUT);
-    digitalWrite(12,HIGH);
+    pinMode(5,OUTPUT);
+    digitalWrite(5,HIGH);
+    attachInterrupt(23,io23interp,RISING);
 
+    
 
 }
 
 void loop() {
+  //Serial.println(digitalRead(23));
   // for (int r = 0; r < 6; r++)
   // {
   //   Serial.print('\t');
@@ -58,30 +71,31 @@ void loop() {
   //   Serial.println(INA.getRegister(r), HEX);
   // }
   // delay(1000);
+
+  // 
+  //Serial.print(bus_voltage);
+
+
   u8g2.clearBuffer();
+
   u8g2.setCursor(0, 15);
-  u8g2.print(INA.getRegister(2)*0.00125);
+  u8g2.print(float(INA.getRegister(2))/800.f);
   u8g2.print("V");
   u8g2.setCursor(64, 15);
-  int row_data = INA.getRegister(1);
+  row_data = INA.getRegister(1);
   crurrent = row_data>0xff00 ? 0 : double(row_data)*1e-3;
   u8g2.print(crurrent);
   u8g2.print("A");
-
   u8g2.setCursor(0, 32);
-  u8g2.print(bus_voltage*crurrent);
+  u8g2.print((INA.getRegister(2)/800)*crurrent);
   u8g2.print("W");
   u8g2.setCursor(70, 32);
     // u8g2.print(bats);
     // u8g2.print("S");
   u8g2.sendBuffer();
-  delay(10);
-  //   // updata();
-  //   // if(bus_voltage<bats*3.3){
-  //   //     buzz(true);
-  //   // }else{
-  //   //     buzz(false);
-  //   // }
+ 
+  delay(20);
+
 
 }
 

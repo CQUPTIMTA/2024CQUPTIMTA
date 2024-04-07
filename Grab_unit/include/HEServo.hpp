@@ -39,10 +39,10 @@ public:
         this->serial = sl;
         this->id = id;
     };
-    HEServo(uint8_t id){
-        this->serial = &Serial;
-        this->id = id;
-    };
+    // HEServo(uint8_t id){
+    //     this->serial = &Serial;
+    //     this->id = id;
+    // };
     HEServo(){
 
     };
