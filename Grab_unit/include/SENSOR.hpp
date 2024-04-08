@@ -1,6 +1,6 @@
-#ifndef SENSOR_H
-#define SENSOR_H
-#include<Arduino.h>
+#ifndef SENSOR_HPP
+#define SENSOR_HPP
+#include <Arduino.h>
 #include "filter.hPP"
 // 定义了一个名为SENSOR的类，实现超声波测距功能
 class SENSOR{
