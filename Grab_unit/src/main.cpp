@@ -27,12 +27,12 @@ HEServo Y_servo(&servo_ser,3);
 void set_high(float high_mm){
   PID high_pid(1*200*256,0,0);
   float error_h=high_mm-high_sensor.get_distance_mm(false);
-  while(error_h>1){
+  while(abs(error_h)>1){
     float output_h=high_pid.control(high_mm,error_h);
     error_h=high_mm-high_sensor.get_distance_mm(false);
-    X_motor.speed_control(-output_h,0);
+    Z_motor.speed_control(-output_h,0);
   }
-  X_motor.speed_control(0,0);
+  Z_motor.speed_control(0,0);
 }
 
 void rezero(){
@@ -66,6 +66,7 @@ void update_sensor(){
 
 
 void setup() {
+  Serial.begin(115200);
   motor_ser.begin(115200,SERIAL_8N1,10,9);
   servo_ser.begin(115200,SERIAL_8N1,35,36);
   //servo_ser.begin(115200);
@@ -94,9 +95,14 @@ void setup() {
 }
 
 void loop() {
+  grap_servo.SERVO_MOVE_TIME_WRITE(240*880/1000.2,0);
   Serial.println(grap_servo.SERVO_POS_READ());
-  delay(500);
-  //Serial.println(Z_motor.read_Bus_voltage());
+  Serial.println(grap_servo.SERVO_TEMP_READ()); 
+  delay(2000);
+  grap_servo.SERVO_MOVE_TIME_WRITE(240*745/1000.2,0);
+  delay(2000);
+  set_high(200);
+  // //Serial.println(Z_motor.read_Bus_voltage());
 
   // Serial.print(high_sensor.get_distance_mm());
   // Serial.print(",");
