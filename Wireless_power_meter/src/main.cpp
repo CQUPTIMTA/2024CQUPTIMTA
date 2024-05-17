@@ -2,8 +2,9 @@
 #include "INA226.h"
 #include "U8g2lib.h"
 #include "Wire.h"
-INA226 INA(0x40);
-U8G2_SSD1306_128X32_UNIVISION_F_SW_I2C u8g2(U8G2_R0,26,25);
+TwoWire Wire_1 = TwoWire(1);
+INA226 INA(0x40,&Wire_1);
+U8G2_SSD1306_128X32_UNIVISION_F_SW_I2C u8g2(U8G2_R0,14,27);
 char names[6][20] =
 {
   "CONFIGURATION: ",
@@ -44,6 +45,7 @@ void io23interp(){
 
 
 void setup() {
+    Wire_1.setPins(25,26);
     Serial.begin(9600);
     pinMode(23,PULLDOWN);
     Wire.begin(25,26);
@@ -51,9 +53,9 @@ void setup() {
     u8g2.begin();
     
     u8g2.setFont(u8g2_font_10x20_me);
-    pinMode(5,OUTPUT);
-    digitalWrite(5,HIGH);
-    attachInterrupt(23,io23interp,RISING);
+    pinMode(35,OUTPUT);
+    digitalWrite(35,HIGH);
+    //attachInterrupt(23,io23interp,RISING);
 
     
 
@@ -72,9 +74,9 @@ void loop() {
   // }
   // delay(1000);
 
-  // 
+  
   //Serial.print(bus_voltage);
-
+  Serial.println("hello");
 
   u8g2.clearBuffer();
 

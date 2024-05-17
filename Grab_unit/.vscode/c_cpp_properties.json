@@ -8,8 +8,8 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "f:/项目/2024 物流起重机/代码/Grab_unit/include",
-                "f:/项目/2024 物流起重机/代码/Grab_unit/src",
+                "F:/项目/2024 物流起重机/代码/Grab_unit/include",
+                "F:/项目/2024 物流起重机/代码/Grab_unit/src",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/EEPROM/src",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/newlib/platform_include",
                 "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/freertos/include",
@@ -241,8 +241,8 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "f:/项目/2024 物流起重机/代码/Grab_unit/include",
-                    "f:/项目/2024 物流起重机/代码/Grab_unit/src",
+                    "F:/项目/2024 物流起重机/代码/Grab_unit/include",
+                    "F:/项目/2024 物流起重机/代码/Grab_unit/src",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/libraries/EEPROM/src",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/newlib/platform_include",
                     "C:/Users/QMJ/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/include/freertos/include",

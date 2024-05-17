@@ -32,5 +32,5 @@ class PID{
         double last_error=0;
         double last_integral=0;
         int last_time=0;
-}
+};
 #endif
