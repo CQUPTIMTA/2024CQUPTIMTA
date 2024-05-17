@@ -27,6 +27,7 @@ HEServo grap_servo(&servo_ser,1);
 HEServo X_servo(&servo_ser,2);
 HEServo Y_servo(&servo_ser,3);
 
+//高度闭环控制
 void set_high(float high_mm){
   PID high_pid(2,0.001,0.001);
   float error_h=high_mm-high_sensor.get_distance_mm();
@@ -38,30 +39,43 @@ void set_high(float high_mm){
   }
   Z_motor.speed_control(0,0,false,true);
 }
+//获取当前X轴位置,单位mm
+float get_now_x_location(){
+  return pluse_to_mm(X_motor.read_input_pulses())+DATA.X_ZERO_POINT;
+}
+//设置X轴位置,单位mm
+void set_x_location(float location,float speed,uint8_t acce=0,bool need_wait=false){
+  X_motor.pulse_control(mm_to_pluse(location-DATA.X_ZERO_POINT),speed,acce);
+  //等待
+  while(need_wait&&(abs(get_now_x_location()-location)>5)){
+    delay(50);    
+  }
+}
+
 
 //归零
 void rezero(){
-  X_motor.speed_control(60,0);
+  X_motor.speed_control(DATA.offset_dir*60,0);
   while(!digitalRead(11)){
     delay(1);
   }
-  X_motor.pulse_control(-256*1,30);
+  X_motor.pulse_control(DATA.offset_dir*-256*1,30);
   delay(1000);
-  X_motor.speed_control(3,0);
+  X_motor.speed_control(DATA.offset_dir*3,0);
   while(!digitalRead(11)){
     delay(1);
   }
   X_motor.speed_control(0,0);
   X_motor.angle_reset();
-
 }
 
+//微动中断函数
 void IO11interrupt( ){
   digitalWrite(15,digitalRead(11));
 }
 
-float get_now_x_location(){
-    return 40*PI*X_motor.read_input_pulses()/(16*200);
+float pluse_to_mm(int pluse){
+    return 40*PI*pluse/(16*200);
 }
 //*************移动毫米为单位******************//
 int64_t location_to_pluse(float location){
