@@ -197,9 +197,6 @@ private:
         }
         //Serial.print("\n");
         delay(1);
-
-
-
     };
     //读取数据
     void read(uint8_t *data,uint8_t len){

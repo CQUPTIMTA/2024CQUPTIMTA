@@ -5,7 +5,7 @@ class PID{
     public:
         PID(float Kp, float Ki, float Kd):KP(Kp), KI(Ki), KD(Kd){};
         ~PID(){};
-        double control(double target, double error){
+        double control(double error){
             double output = error;
             if(last_time != 0){
                 double delta_time = millis() - last_time;

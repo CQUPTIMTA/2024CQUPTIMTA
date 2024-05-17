@@ -204,6 +204,7 @@
                 "C:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/qio_qspi/include",
                 "C:/Users/user/.platformio/packages/framework-arduinoespressif32/cores/esp32",
                 "C:/Users/user/.platformio/packages/framework-arduinoespressif32/variants/esp32s3",
+                "c:/Users/user/Desktop/qzj2024/2024-_-/Grab_unit/.pio/libdeps/esp32-s3-devkitm-1/Unity/src",
                 "C:/Users/user/.platformio/packages/framework-arduinoespressif32/libraries/ArduinoOTA/src",
                 "C:/Users/user/.platformio/packages/framework-arduinoespressif32/libraries/AsyncUDP/src",
                 "C:/Users/user/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src",
@@ -437,6 +438,7 @@
                     "C:/Users/user/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32s3/qio_qspi/include",
                     "C:/Users/user/.platformio/packages/framework-arduinoespressif32/cores/esp32",
                     "C:/Users/user/.platformio/packages/framework-arduinoespressif32/variants/esp32s3",
+                    "c:/Users/user/Desktop/qzj2024/2024-_-/Grab_unit/.pio/libdeps/esp32-s3-devkitm-1/Unity/src",
                     "C:/Users/user/.platformio/packages/framework-arduinoespressif32/libraries/ArduinoOTA/src",
                     "C:/Users/user/.platformio/packages/framework-arduinoespressif32/libraries/AsyncUDP/src",
                     "C:/Users/user/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src",
@@ -473,7 +475,7 @@
                 ]
             },
             "defines": [
-                "PLATFORMIO=60114",
+                "PLATFORMIO=60115",
                 "ARDUINO_ESP32S3_DEV",
                 "ARDUINO_USB_MODE=1",
                 "ARDUINO_RUNNING_CORE=1",

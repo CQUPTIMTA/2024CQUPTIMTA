@@ -1,6 +1,6 @@
-#ifndef SENSOR_H
-#define SENSOR_H
-#include<Arduino.h>
+#ifndef SENSOR_HPP
+#define SENSOR_HPP
+#include <Arduino.h>
 #include "filter.hPP"
 // 定义了一个名为SENSOR的类，实现超声波测距功能
 class SENSOR{
@@ -19,7 +19,7 @@ class SENSOR{
   int data_size;
   // 引脚初始化
   void setup(){
-    pinMode(trigpin, OUTPUT); // 设置触发引脚为输出模式
+    pinMode(trigpin, OUTPUT_OPEN_DRAIN); // 设置触发引脚为输出模式
     digitalWrite(trigpin, LOW);
     pinMode(echopin, INPUT); // 设置回响引脚为输入模式
   };
