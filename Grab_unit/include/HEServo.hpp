@@ -98,6 +98,12 @@ public:
         this->add_checksum(data);
         this->send(data);
     }
+    void get_close(){
+        SERVO_MOVE_TIME_WRITE(240*745/1000,0);
+    }
+    void get_open(){
+        SERVO_MOVE_TIME_WRITE(240*880/1000,0);
+    }
 
     void SERVO_MOVE_START(){
         /*配合指令SERVO_MOVE_TIME_WAIT_WRITE使用*/
