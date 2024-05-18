@@ -55,7 +55,6 @@ class ESP32FLASHEEPROM{
     
     // ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓这里写需要存放在FLASH的数据↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     uint8_t ID=0;
-
     int8_t offset_dir = 1;//归零时应该走向的方向 1为Y正方向 -1为Y负方向
     float X_ZERO_POINT=0;// 碰到归零点的Y坐标，单位mm
     float Y_PLUSE_MM=0;//X轴移动一毫米的脉冲数

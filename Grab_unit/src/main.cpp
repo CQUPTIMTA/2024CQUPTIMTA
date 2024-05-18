@@ -25,6 +25,13 @@ HEServo grap_servo(&servo_ser,1);
 HEServo X_servo(&servo_ser,2);
 HEServo Y_servo(&servo_ser,3);
 
+float pluse_to_mm(int pluse){
+    return 40*PI*pluse/(16*200);
+}
+int64_t mm_to_pluse(float location){
+    return location*16*200/float(40*PI);
+}
+
 void set_high(float high_mm){
   //PID high_pid(2,0.001,0.001);
   float error_h=high_mm-high_sensor.get_distance_mm();
@@ -56,14 +63,6 @@ void rezero(){
 
 void IO11interrupt( ){
   digitalWrite(15,digitalRead(11));
-}
-
-float get_now_x_location(){
-    return 40*PI*X_motor.read_input_pulses()/(16*200);
-}
-//*************移动毫米为单位******************//
-int64_t location_to_pluse(float location){
-    return location*16*200/float(40*PI);
 }
 
 void update_sensor(void* p){

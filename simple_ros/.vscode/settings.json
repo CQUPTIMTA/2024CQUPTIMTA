@@ -4,6 +4,9 @@
         "span": "cpp",
         "vector": "cpp",
         "xstring": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "initializer_list": "cpp",
+        "utility": "cpp",
+        "xtree": "cpp"
     }
 }
