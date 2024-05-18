@@ -1345,11 +1345,11 @@ private:
         for (int i = 0; i < len; i++){
             this->serial->write(data[i]);
         }
-        delay(1);
+        delay(2);
     };
     void read(uint8_t *data,uint8_t len,bool need_delay = true){
         if(need_delay)
-            delay(1);
+            delay(2);
         for (int i = 0; i < MAX_RETRY; i++){
             if (this->serial->available()){
                 data[0]=this->serial->read();

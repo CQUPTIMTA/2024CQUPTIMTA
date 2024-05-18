@@ -1,7 +1,7 @@
 #ifndef SIMPLE_ROS_TRANSPORT_HPP
 #define SIMPLE_ROS_TRANSPORT_HPP
 #include <Arduino.h>
-
+#include <cstring>
 
 enum package_type {
     package_type_OK = 0,
@@ -29,78 +29,16 @@ struct data_package {
     }
 }
 
-template <typename T>
-class Queue {
-public:
-    Queue(int size) {
-        _size = size;
-        data = new T[size];
-        for (int i = 0; i < size; i++) {
-            data[i] = 0;
-        }
-    }
 
-    ~Queue() {
-        delete[] data;
-    }
-
-    // 从队列中获取数据，并且退队
-    T get() {
-        T t = data[front];
-        front = (front + 1) % _size;
-        return t;
-    }
-
-    // 从队列中获取数据，但不退队
-    T peek() { 
-        if(isEmpty()){
-            return 0;
-        }
-        return data[front];
-    }
-
-    // 向队列中放入数据
-    void put(T t) {
-        if (isFull()) {
-            front--;
-            if (front < 0) {
-                front = _size - 1;
-            }
-            tail++;
-            if (tail >= _size) {
-                tail = 0;
-            }
-            data[tail] = t;
-        }
-        data[tail] = t;
-        tail = (tail + 1) % _size;
-    }
-    int get_len(){  
-        return (tail-front+_size)%_size;
-    }
-
-private:
-    T* data = nullptr;
-    int front = 0;
-    int tail = 0;
-    int _size = 0;
-
-    bool isEmpty(){
-        return (tail == front) && (get_len() == 0);
-    }
-
-    bool isFull(){
-        return (tail + 1) % _size == front;
-
-    }
-};
-
-
+static void Processing_data(void* p);
 class SimpleRosTransport{
-    friend class SimpleRosNode;
+    friend void Processing_data(void* p);
     public:
-        SimpleRosTransport(int r_queue_size=128){
-            read_queue=Queue<uint8_t>(r_queue_size);
+        SimpleRosTransport(){
+
+        };
+        void setup(){
+            xtask_create(&Processing_data,"Processing_data",4096,NULL,1,NULL,1);
         };
         ~SimpleRosTransport(){
 
@@ -108,11 +46,35 @@ class SimpleRosTransport{
         virtual void send(data_package data){};
         virtual uint8_t read(){};
         virtual bool is_available(){};
-        
     protected:
-        Queue<uint8_t> read_queue;
+        std::vector<uint8_t> r_buffer;
+
 
 };
+static void Processing_data(void* p){
+    SimpleRosTransport* port = (SimpleRosTransport*)p;
+    while(1){ 
+        if(port->r_buffer.size()>2){
+            while(!(port->r_buffer[0]==0xFE&&port->r_buffer[1]==0xFE)){
+                port->r_buffer.erase(port->r_buffer.begin());
+                if(port->r_buffer.size()==0){
+                    break;
+                }
+            }
+            if(port->r_buffer.size()>4){
+                data_package data;
+                data.header = port->r_buffer[0]<<8|port->r_buffer[1];
+                data.packge_type = port->r_buffer[2];
+                data.name_len = port->r_buffer[3];
+                data.data_len = port->r_buffer[4];
+                data.name = port->r_buffer.data()+5;
+                data.data = port->r_buffer.data()+5+data.name_len;
+                
+                data.checksum = port->r_buffer[5+data.name_len+data.data_len];
+            }
+        }
+    }
+}
 
 class SimpleRosTransport_serial:public SimpleRosTransport{
     public: 
