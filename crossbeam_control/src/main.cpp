@@ -7,9 +7,10 @@
 #include "ESP32FLASHEEPROM.hpp"
 #include "EMMC42V5.hpp"
 #include "PINS.hpp"
+#include "ESPNOW.hpp"
 #define GEARTEETH 30
 
-//ESP32FLASHEEPROM DATA();
+NVSDATA DATA;
 
 namespace CROSSBEAM {
     HardwareSerial motor_ser(2);
@@ -59,6 +60,12 @@ namespace CROSSBEAM {
 
 
 void setup() {
+    DATA.setup();
+    DATA.read();
+    DATA.close();
+
+    callback_map["test"]=test_response;
+    esp_now_setup();
     Serial.begin(115200);
     CROSSBEAM::motor_ser.begin(115200, SERIAL_8N1, 10, 9);
     setup_pins();
@@ -67,14 +74,13 @@ void setup() {
     delay(1000);
     CROSSBEAM::Y_load(false);
     //CROSSBEAM::move_to_y(CROSSBEAM::get_now_location_y()+600,100,200);
-    // DATA().setup();
-    // DATA().read();
+
 }
 
 void loop() {
 
-    Serial.println(CROSSBEAM::get_now_location_y());
-
+    //Serial.println(CROSSBEAM::get_now_location_y());
+    //Serial.println(DATA.ID);
     //Serial.print(digitalRead(RIGHT_SW_PIN));
     // Serial.print(" ");
     // Serial.println(right_motor.read_Bus_voltage());
