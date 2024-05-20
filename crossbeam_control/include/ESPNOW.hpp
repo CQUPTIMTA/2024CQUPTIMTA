@@ -139,7 +139,10 @@ data_package re_data;
 void package_response(void* p){
 
   String name = String(re_data.name); 
-  callback_map[name](re_data);
+  //如果有对应的回调函数，则执行
+  if(callback_map.find(name) != callback_map.end()){
+    callback_map[name](re_data);
+  };
   vTaskDelete(NULL);
 }
   
