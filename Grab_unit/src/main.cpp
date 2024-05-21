@@ -142,6 +142,17 @@ void led_update(void* p){
     delay(500);
   }
 }
+void Servo_temperature_read(void *p){
+  while(1){
+    Serial.println(grap_servo.SERVO_TEMP_READ());
+    //如果夹爪舵机温度过高
+    if(grap_servo.SERVO_TEMP_READ()>70){
+      //温度过高让夹爪舵机掉电
+    grap_servo.SERVO_LOAD_OR_UNLOAD_WRITE(0);
+    }
+    delay(10);
+  }
+}
 
 void setup() {
   Serial.begin(115200);
@@ -166,13 +177,8 @@ void setup() {
   attachInterrupt(11,IO11interrupt,CHANGE);
   xTaskCreatePinnedToCore(update_sensor,"update_sensor",2048,NULL,2,NULL,1);
   xTaskCreatePinnedToCore(led_update,"led_update",2048,NULL,3,NULL,0);
-  // DATA.grap_servo_close=745;
-  // DATA.grap_servo_open=880;
+  xTaskCreatePinnedToCore(Servo_temperature_read,"Servo_temperature_read",2048,NULL,1,NULL,1);
   Z_motor.pulse_control(-115*10,30,0);
-  // DATA.write();
-  // delay(500);
-  // get_XY_back();
-  // set_high(100);
   // rezero();
   // X_motor.pulse_control(location_to_pluse(-500),120,0);
   // while(abs(-500-get_now_x_location())>10){
@@ -204,6 +210,7 @@ void setup() {
 }
 
 void loop() {
+  // //读取电机电压
   // Serial.print("Z:");
   // Serial.println(Z_motor.read_Bus_voltage());
   // Serial.print("X:");
