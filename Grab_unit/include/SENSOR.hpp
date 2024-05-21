@@ -19,7 +19,7 @@ class SENSOR{
   int data_size;
   // 引脚初始化
   void setup(){
-    pinMode(trigpin, OUTPUT); // 设置触发引脚为输出模式
+    pinMode(trigpin, OUTPUT_OPEN_DRAIN); // 设置触发引脚为输出模式
     digitalWrite(trigpin, LOW);
     pinMode(echopin, INPUT); // 设置回响引脚为输入模式
   };
