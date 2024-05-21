@@ -19,14 +19,14 @@ void right_sw_interrupt() {
     digitalWrite(RIGHT_SW_LED, !digitalRead(RIGHT_SW_PIN));
 }
 void setup_pins() {
-
+    pinMode(17, OUTPUT);
     pinMode(LEFT_SW_LED, OUTPUT);
     pinMode(RIGHT_SW_LED, OUTPUT);
     pinMode(buzz_pin, OUTPUT);
     pinMode(MOTOR_LED_PIN,OUTPUT);
     pinMode(LEFT_SW_PIN, INPUT_PULLUP);
     pinMode(RIGHT_SW_PIN, INPUT_PULLUP);
-
+    digitalWrite(17, LOW);
     digitalWrite(MOTOR_LED_PIN,LOW);
     digitalWrite(LEFT_SW_LED, LOW);
     digitalWrite(RIGHT_SW_LED, LOW);

@@ -105,14 +105,7 @@ public:
         this->serial = sl;
         this->id = id;
     };
-    // EMMC42V5(uint8_t id){
-    //     this->serial = &Serial;
-    //     this->id = id;
-    // };
-    // EMMC42V5(){
-    //     this->serial = &Serial;
-    //     this->id = 1;
-    // };
+
     void setup(int bund_rate){
         this->serial->begin(bund_rate);
 
@@ -270,7 +263,7 @@ public:
         // 命令返回：地址 + 0xFF + 命令状态 + 校验字节
         // 命令示例：发送01FF666B，正确返回01FF026B，条件不满足返回01FFE26B，
         // 错误命令返回01 00 EE 6B
-        uint8_t data[4] = {this->id, 0xFF, 0x66, this->checksum};
+        uint8_t data[4] = {0x00, 0xFF, 0x66, this->checksum};
         send(data,4);
 
         uint8_t r_data[4] = {0, 0, 0, 0};
@@ -900,12 +893,12 @@ public:
         uint8_t r_data[8] = {0, 0xFF, 0, 0, 0, 0, 0, 0};
         read(r_data, 4);
         switch (r_data[1]){
-            case 0x00 : //错误
-                if(need_retry){
-                    return read_target_location(true);
-                }
-                return 0;
-                break;
+            // case 0x00 : //错误
+            //     if(need_retry){
+            //         return read_target_location(true);
+            //     }
+            //     return 0;
+            //     break;
             case 0xFF: //未响应
                 return 0;
                 break;
@@ -970,11 +963,11 @@ public:
         uint8_t r_data[8] = {0, 0, 0xFF, 0, 0, 0, 0, 0};
         read(r_data, 4);
         switch (r_data[2]){
-            case 0x00 : //错误
-                if(need_retry){
-                    return read_target_location(true);
-                }
-                break;
+            // case 0x00 : //错误
+            //     if(need_retry){
+            //         return read_target_location(true);
+            //     }
+            //     break;
             case 0xFF: //未响应
                 return 0;
                 break;
@@ -1006,11 +999,11 @@ public:
         uint8_t r_data[8] = {0, 0, 0xFF, 0, 0, 0, 0, 0};
         read(r_data, 4);
         switch (r_data[2]){
-        case 0x00 : //错误
-                if(need_retry){
-                    return read_target_location(true);
-                }
-                break;
+        // case 0x00 : //错误
+        //         if(need_retry){
+        //             return read_target_location(true);
+        //         }
+        //         break;
             case 0xFF: //未响应
                 return 0;
                 break;
@@ -1345,11 +1338,11 @@ private:
         for (int i = 0; i < len; i++){
             this->serial->write(data[i]);
         }
-        delay(2);
+        delay(1);
     };
     void read(uint8_t *data,uint8_t len,bool need_delay = true){
         if(need_delay)
-            delay(2);
+            delay(1);
         for (int i = 0; i < MAX_RETRY; i++){
             if (this->serial->available()){
                 data[0]=this->serial->read();
