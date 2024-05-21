@@ -46,15 +46,21 @@ void set_high(float high_mm){
 void get_XY_back(){
   X_servo.SERVO_MOVE_TIME_WRITE(240*830/1000,0);
   Y_servo.SERVO_MOVE_TIME_WRITE(240*240/1000,0);
-  delay(10);
+  delay(1);
 }
 void get_XY_centrol(){
+  //需要按照需求调整下降高度
   X_servo.SERVO_MOVE_TIME_WRITE(240*344/1000,0);
   Y_servo.SERVO_MOVE_TIME_WRITE(240*719/1000,0);
-  delay(10);
-  // while(abs(X_sensor.get_distance_mm()-Y_sensor.get_distance_mm())<=10){
-  //   //操作X轴，Y轴的步进电机进行调整、直到测量误差值小于10mm
-  // }
+  delay(1);
+}
+void get_XY_measure(){
+  get_XY_centrol();
+  while(abs(X_sensor.get_distance_mm()-Y_sensor.get_distance_mm())<=10){
+    //操作X轴，Y轴的步进电机进行调整、直到测量误差值小于10mm
+  }
+  delay(1000);
+  get_XY_back();
 }
 
 //归零

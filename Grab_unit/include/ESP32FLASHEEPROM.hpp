@@ -44,6 +44,10 @@ class ESP32FLASHEEPROM{
         Z_PLUSE_MM = preferences.getFloat("Z_ZERO_POINT",0);
         grap_servo_open = preferences.getInt("grap_servo_open",0);
         grap_servo_close = preferences.getInt("grap_servo_close",0);
+        senser_x_down = preferences.getFloat("senser_x_down",0);
+        senser_x_up = preferences.getFloat("senser_x_up",0);
+        senser_y_down = preferences.getFloat("senser_y_down",0);
+        senser_y_up = preferences.getFloat("senser_y_up",0);
 
     }
 
@@ -63,6 +67,10 @@ class ESP32FLASHEEPROM{
         preferences.putFloat("Z_PLUSE_MM",Z_PLUSE_MM);
         preferences.putInt("grap_servo_open",grap_servo_open);
         preferences.putInt("grap_servo_close",grap_servo_close);
+        preferences.putFloat("senser_x_down",senser_x_down);
+        preferences.putFloat("senser_x_up",senser_x_up);
+        preferences.putFloat("senser_y_down",senser_y_down);
+        preferences.putFloat("senser_y_up",senser_y_up);
     }
     void close(){
         preferences.end();
@@ -86,6 +94,10 @@ class ESP32FLASHEEPROM{
     float Z_PLUSE_MM=0;//Z轴移动一毫米的脉冲数
     float grap_servo_open=0;//夹爪开
     float grap_servo_close=0;//夹爪关
+    float senser_x_up=0;//超声波下降对应X的舵机位置
+    float senser_x_down=0;//超声波上升对应X的舵机位置
+    float senser_y_up=0;//超声波下降对应y的舵机位置
+    float senser_y_down=0;//超声波上升对应y的舵机位置
 };
 
 #endif
