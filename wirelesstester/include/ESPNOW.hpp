@@ -85,8 +85,10 @@ struct data_package {
     for(int i=0;i<name_len;i++){
       data[6+i]=name[i];
     }
-    for(int i=0;i<data_len;i++){
-      data[6+name_len+i]=data[i];
+    if(data_len!=0){
+      for(int i=0;i<data_len;i++){
+        data[6+name_len+i]=data[i];
+      }
     }
     add_checksum();
     data[6+name_len+data_len]=checksum;
@@ -96,29 +98,18 @@ struct data_package {
 
 //接收数据缓存
 data_package receive_data_buf;
+std::map<String, data_package> receive_datas;
 
 
 //接收数据时的回调函数，收到数据时自动运行
 void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
   data_package re_data;
+  //检查是否是数据包
   if(!re_data.add_package(data,len)) return ;
-  
-  // if(len<2||(data[0]!=0xFE&&data[1]!=0xFE)) return;
-  // data_package re_data;
-  // re_data.id=data[2];
-  // re_data.packge_type=data[3];
-  // re_data.name_len=data[4];
-  // re_data.data_len=data[5];
-  // for(int i=0;i<re_data.name_len;i++){
-  //   re_data.name[i]=data[6+i];
-  // }
-  // for(int i=0;i<re_data.data_len;i++){
-  //   re_data.data[i]=data[6+re_data.name_len+i];
-  // }
-  // re_data.checksum=data[len-1];
-  // if(!re_data.check()) return;
+
   //存入接受缓存
   memcpy(&receive_data_buf,&re_data,sizeof(re_data));
+  receive_datas[re_data.name]=re_data;
   last_time_receive_time=millis();
 
 }
@@ -146,4 +137,32 @@ void esp_now_setup() {
   }
   esp_now_register_recv_cb(OnDataRecv);
 } 
+
+
+//通过espnow发送数据
+void esp_now_send_package(package_type type,int _id,String name,uint8_t* data,int datalen,uint8_t* receive_MAC){
+  data_package send_data;
+  send_data.packge_type=type;
+  send_data.id=_id;
+  for(int i=0;i<name.length();i++){
+    send_data.name[i]=name[i];
+  }
+  if(datalen!=0){
+    for(int i=0;i<datalen;i++){
+      send_data.data[i]=data[i];
+    }
+  }
+
+  send_data.name_len=name.length();
+  send_data.data_len=datalen;
+  send_data.add_checksum();
+
+  
+  uint8_t send_data_array[send_data.name_len+send_data.data_len+7];
+  //结构体到数组
+  send_data.get_data(send_data_array);
+  //发送
+  esp_err_t err = esp_now_send(receive_MAC,send_data_array,send_data.get_len());
+}
+
 #endif
