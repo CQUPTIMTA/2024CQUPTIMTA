@@ -10,7 +10,7 @@
 #include <esp_wifi.h>
 #include <esp_now.h>
 #include <map>
-
+extern int ID;
 
 int last_time_receive_time=0;
 
@@ -25,7 +25,6 @@ enum package_type {
 
 //数据包格式
 struct data_package {
-  /*数据部分*/
   uint16_t header=0xFEFE;
   uint8_t id=0;
   uint8_t packge_type;
@@ -34,12 +33,6 @@ struct data_package {
   char name[30] ;
   uint8_t data[50] ;
   uint8_t checksum=0;
-  /*数据部分*/
-
-
-  /*工具函数*/
-
-  //校验该包的完整性
   bool check(){
     uint8_t sum=header+packge_type+name_len+data_len+id;
     for(int i=0;i<name_len;i++){
@@ -50,19 +43,17 @@ struct data_package {
     }
     return sum==checksum;
   }
-
-  //添加校验
-  void add_checksum(){
-      checksum+=header+packge_type+name_len+data_len+id;
-      for(int i=0;i<name_len;i++){
-          checksum+=name[i];
-      }
-      for(int i=0;i<data_len;i++){
-          checksum+=data[i];
-      }
+  uint8_t add_checksum(){
+    uint8_t sum=header+packge_type+name_len+data_len+id;
+    for(int i=0;i<name_len;i++){
+        sum+=name[i];
+    }
+    for(int i=0;i<data_len;i++){
+        sum+=data[i];
+    }
+    checksum=sum;
+    return sum;
   }
-
-  //从数组转换到结构体对象
   bool add_package(const uint8_t *data,int len){
     if(len<2||(data[0]!=0xFE&&data[1]!=0xFE)) return false;
     data_package re_data;
@@ -77,43 +68,37 @@ struct data_package {
       re_data.data[i]=data[6+re_data.name_len+i];
     }
     re_data.checksum=data[len-1];
+
     if(!re_data.check()) return false;
     //存入数据
     memcpy(this,&re_data,sizeof(re_data));
     return true;
   }
-
-  //从数组转换到结构体对象
   bool add_package(uint8_t* data,int len){
     const uint8_t* d=(const uint8_t*)data;
     add_package(d,len);
   }
-
-  //获取数据包的实际长度
   int get_len(){
     return 6+name_len+data_len+1;
   }
-
-  //转换结构体到数组
-  void get_data(uint8_t* data){
-    data[0]=0xFE;
-    data[1]=0xFE;
-    data[2]=id;
-    data[3]=packge_type;
-    data[4]=name_len;
-    data[5]=data_len;
+  void get_data(uint8_t* arr){
+    arr[0]=0xFE;
+    arr[1]=0xFE;
+    arr[2]=id;
+    arr[3]=packge_type;
+    arr[4]=name_len;
+    arr[5]=data_len;
     for(int i=0;i<name_len;i++){
-      data[6+i]=name[i];
+      arr[6+i]=name[i];
     }
-    for(int i=0;i<data_len;i++){
-      data[6+name_len+i]=data[i];
+    if(data_len!=0){
+      for(int i=0;i<data_len;i++){
+        arr[6+name_len+i]=data[i];
+      }
     }
     add_checksum();
-    data[6+name_len+data_len]=checksum;
+    arr[6+name_len+data_len]=checksum;
   }
-
-
-  /*工具函数*/
 };
 
 
@@ -129,18 +114,18 @@ std::map<String, DataPackageCallback> callback_map;
 
 
 
-void test_response(data_package redata){
-    esp_now_send_package(package_type_response,redata.id,"test",redata.data,redata.data_len,receive_MACAddress);
-};
+
 
 
 data_package re_data;
 //处理数据时的回调函数
 void package_response(void* p){
+  
+  String name = String(re_data.name,re_data.name_len); 
 
-  String name = String(re_data.name); 
   //如果有对应的回调函数，则执行
-  if(callback_map.find(name) != callback_map.end()){
+  if(callback_map.find(name) != callback_map.end() ){
+    
     callback_map[name](re_data);
   };
   vTaskDelete(NULL);
@@ -150,28 +135,29 @@ void package_response(void* p){
 
 //接收数据时的回调函数，收到数据时自动运行
 void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
-
+  
   if(!re_data.add_package(data,len)) return ;
+  if(re_data.id!=ID) return;
+  
   // //如果有对应的回调函数，则执行
   xTaskCreate(package_response, "package_response_task", 4096,&re_data, 1, NULL);
   last_time_receive_time=millis();
 }
 
 //通过espnow发送数据
-void esp_now_send_package(package_type type,int _id,String name,uint8_t* data,int datalen,uint8_t* receive_MAC){
+void esp_now_send_package(package_type type,int _id,String name,uint8_t* data,int datalen,uint8_t* receive_MAC=receive_MACAddress){
+
   data_package send_data;
   send_data.packge_type=type;
   send_data.id=_id;
+  send_data.name_len=name.length();
+  send_data.data_len=datalen;
   for(int i=0;i<name.length();i++){
     send_data.name[i]=name[i];
   }
   for(int i=0;i<datalen;i++){
     send_data.data[i]=data[i];
   }
-  send_data.name_len=name.length();
-  send_data.data_len=datalen;
-  send_data.add_checksum();
-
 
   uint8_t send_data_array[send_data.name_len+send_data.data_len+7];
   //结构体到数组
