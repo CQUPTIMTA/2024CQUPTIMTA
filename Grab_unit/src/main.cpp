@@ -274,7 +274,6 @@ namespace EspnowCallback{
 
 void setup() {
   Serial.begin(115200);
-
   GrapUnit::motor_ser.begin(115200,SERIAL_8N1,10,9);
   GrapUnit::servo_ser.begin(115200,SERIAL_8N1,35,36);
   GrapUnit::high_sensor.setup();
@@ -287,7 +286,7 @@ void setup() {
   xTaskCreatePinnedToCore(GrapUnit::update_sensor,"update_sensor",2048,NULL,2,NULL,1);
   xTaskCreatePinnedToCore(GrapUnit::led_update,"led_update",2048,NULL,3,NULL,0);
   xTaskCreatePinnedToCore(GrapUnit::Servo_temperature_read,"Servo_temperature_read",2048,NULL,1,NULL,1);
-
+  
   esp_now_setup();
   pinMode(4,OUTPUT);
   pinMode(5,OUTPUT);
