@@ -276,7 +276,7 @@ int move_y(int argc, char** args){
 
 
 int move_to_x(int argc, char** args){
-    if (argc != 3) {
+    if (argc != 5) {
         shell.println("bad argument count");
         return -1;
     }
@@ -300,7 +300,7 @@ int move_to_x(int argc, char** args){
 }
 
 int move_x(int argc, char** args){
-    if (argc != 3) {
+    if (argc != 5) {
         shell.println("bad argument count");
         return -1;
     }
@@ -324,7 +324,7 @@ int move_x(int argc, char** args){
 }
 
 int move_to_z(int argc, char** args){
-    if (argc != 3) {
+    if (argc != 5) {
         shell.println("bad argument count");
         return -1;
     }
@@ -348,7 +348,7 @@ int move_to_z(int argc, char** args){
 }
 
 int move_z(int argc, char** args){
-    if (argc != 3) {
+    if (argc != 5) {
         shell.println("bad argument count");
         return -1;
     }
