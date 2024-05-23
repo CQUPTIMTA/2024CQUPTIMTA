@@ -121,7 +121,12 @@ namespace GrapUnit{
     
     return high_sensor.get_distance_mm(true);
   }
-  
+    void wait_to_z(float z){
+    while(abs(z-get_location_z())>10){
+      delay(20);
+    }
+  }
+
   void move_to_z(float z,float speed,float acce=0,bool need_wait=true) {
     float now=get_location_z();
     float delta=z-now;
@@ -131,13 +136,6 @@ namespace GrapUnit{
         wait_to_z(z);
     }
   }
-
-  void wait_to_z(float z){
-    while(abs(z-get_location_z())>10){
-      delay(20);
-    }
-  }
-
   void update_sensor(void* p){
     while(1){
       high_sensor.update();
@@ -256,6 +254,16 @@ namespace EspnowCallback{
     digitalWrite(laser_pin,bool(redata.data[0]));
     esp_now_send_package(package_type_response,redata.id,"laser",redata.data,redata.data_len,receive_MACAddress);
   }
+  void grap(data_package redata){
+    float flag = *(float*)redata.data;
+    if(flag==1){
+      GrapUnit::get_open();
+    }
+    else{
+      GrapUnit::get_close();
+    }
+    esp_now_send_package(package_type_response,redata.id,"grap",redata.data,redata.data_len,receive_MACAddress);
+  }
   void add_callbacks(){
     callback_map["online_test"]=online_test;
     callback_map["auto_rezero"]=auto_rezero;
@@ -266,7 +274,7 @@ namespace EspnowCallback{
     callback_map["enable"]=enable;
     callback_map["set_zero_point"]=set_zero_point;
     callback_map["laser"]=laser;
-
+    callback_map["grap"]=grap;
   }
 }
 
@@ -282,6 +290,8 @@ void setup() {
   GrapUnit::Y_sensor.setup();
   GrapUnit::DATA.setup();
   GrapUnit::DATA.read();
+  GrapUnit::DATA.close();
+  EspnowCallback::add_callbacks();
   ID=GrapUnit::DATA.ID;
   attachInterrupt(11,GrapUnit::IO11interrupt,CHANGE);
   xTaskCreatePinnedToCore(GrapUnit::update_sensor,"update_sensor",2048,NULL,2,NULL,1);
@@ -302,7 +312,6 @@ void setup() {
   digitalWrite(laser_pin,0);
   
   // GrapUnit::Z_motor.pulse_control(-115*10,30,0);
-  // rezero();
   // X_motor.pulse_control(location_to_pluse(-500),120,0);
   // while(abs(-500-get_now_x_location())>10){
   //   delay(50);
@@ -333,6 +342,8 @@ void setup() {
 }
 
 void loop() {
+  Serial.println(ID);
+  delay(10);
   // //读取电机电压
   // Serial.print("Z:");
   // Serial.println(Z_motor.read_Bus_voltage());
