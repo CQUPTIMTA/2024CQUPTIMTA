@@ -9,7 +9,7 @@
 #include "PINS.hpp"
 #include "ESPNOW.hpp"
 #define GEARTEETH 30
-
+int ID=0;
 NVSDATA DATA;
 
 namespace CROSSBEAM {
@@ -59,33 +59,91 @@ namespace CROSSBEAM {
 }
 
 
+namespace EspnowCallback {
+    void online_test(data_package redata){
+        esp_now_send_package(package_type_response,redata.id,"online_test",redata.data,redata.data_len,receive_MACAddress);
+    };
+    void rezero(data_package redata){
+        return;
+    }
+    void move_to_y(data_package redata){
+        float y=*(float*)redata.data;
+        float speed=*(float*)(redata.data+4);
+        float acce=*(float*)(redata.data+8);
+        CROSSBEAM::move_to_y(y,speed,acce);
+        esp_now_send_package(package_type_response,redata.id,"move_to_y",nullptr,0,receive_MACAddress);
+        while(abs(CROSSBEAM::get_now_location_y()-y)>10){
+            delay(20);
+        }
+        char* sname="move_to_y";
+        esp_now_send_package(package_type_normal,redata.id,"action_complete",(uint8_t*)sname,strlen(sname),receive_MACAddress);
+    }
+    void move_y(data_package redata){
+        float delta=*(float*)redata.data;
+        float speed=*(float*)(redata.data+4);
+        float acce=*(float*)(redata.data+8);
+        float now=CROSSBEAM::get_now_location_y();
+        float y=now+delta;
+        CROSSBEAM::move_to_y(y,speed,acce);
+        esp_now_send_package(package_type_response,redata.id,"move_y",nullptr,0,receive_MACAddress);
+        while (abs(CROSSBEAM::get_now_location_y()-y)>10){
+            delay(20);
+        }
+        char* sname="move_y";
+        esp_now_send_package(package_type_normal,redata.id,"action_complete",(uint8_t*)sname,strlen(sname),receive_MACAddress);
+    }
+    void get_y(data_package redata){
+        float y=CROSSBEAM::get_now_location_y();
+        esp_now_send_package(package_type_response,redata.id,"get_y",(uint8_t*)&y,sizeof(y),receive_MACAddress);
+        
+    }
+    void enable(data_package redata){
+        char name=redata.data[0];
+        if(name!='Y'){
+            return;
+        }
+        bool is_load=(bool)redata.data[1];
+        CROSSBEAM::Y_load(is_load);
+        esp_now_send_package(package_type_response,redata.id,"enable",nullptr,0,receive_MACAddress);
+    }
+    void set_zero_point(data_package redata){
+        float point=*(float*)redata.data;
+        DATA.Y_ZERO_POINT=point;
+        DATA.write();
+        esp_now_send_package(package_type_response,redata.id,"set_zero_point",nullptr,0,receive_MACAddress);
+    }
+    void add_callbacks(){
+        callback_map["online_test"]=online_test;
+        callback_map["rezero"]=rezero;
+        callback_map["move_to_y"]=move_to_y;
+        callback_map["move_y"]=move_y;
+        callback_map["enable"]=enable;
+        callback_map["set_zero_point"]=set_zero_point;
+        callback_map["get_y"]=get_y;
+    }
+}
+
 void setup() {
     DATA.setup();
     DATA.read();
     DATA.close();
+    ID=DATA.ID;
 
-    callback_map["test"]=test_response;
+    
     esp_now_setup();
+    EspnowCallback::add_callbacks();
     Serial.begin(115200);
     CROSSBEAM::motor_ser.begin(115200, SERIAL_8N1, 10, 9);
     setup_pins();
     attachInterrupt(digitalPinToInterrupt(LEFT_SW_PIN), left_sw_interrupt, CHANGE);
     attachInterrupt(digitalPinToInterrupt(RIGHT_SW_PIN), right_sw_interrupt, CHANGE);
     delay(1000);
-    CROSSBEAM::Y_load(false);
-    //CROSSBEAM::move_to_y(CROSSBEAM::get_now_location_y()+600,100,200);
+
 
 }
 
 void loop() {
-
-    //Serial.println(CROSSBEAM::get_now_location_y());
-    //Serial.println(DATA.ID);
-    //Serial.print(digitalRead(RIGHT_SW_PIN));
-    // Serial.print(" ");
-    // Serial.println(right_motor.read_Bus_voltage());
-    // Serial.println("Hello World");
-    
     delay(1000);
+    Serial.println(ID);
 }
 
