@@ -1,7 +1,6 @@
 #ifndef ESP32FLASHEEPROM_HPP
 #define ESP32FLASHEEPROM_HPP
 
-#include <Arduino.h>
 #include "Preferences.h"
 Preferences preferences;
 

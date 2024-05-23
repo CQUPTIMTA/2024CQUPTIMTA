@@ -150,7 +150,7 @@ void Servo_temperature_read(void *p){
       //温度过高让夹爪舵机掉电
     grap_servo.SERVO_LOAD_OR_UNLOAD_WRITE(0);
     }
-    delay(10);
+    delay(1);
   }
 }
 
