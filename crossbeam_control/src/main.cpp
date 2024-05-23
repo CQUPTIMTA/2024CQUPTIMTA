@@ -59,7 +59,7 @@ namespace CROSSBEAM {
 }
 
 
-namespace ESPNOWCALLBACK {
+namespace EspnowCallback {
     void online_test(data_package redata){
         esp_now_send_package(package_type_response,redata.id,"online_test",redata.data,redata.data_len,receive_MACAddress);
     };
@@ -131,7 +131,7 @@ void setup() {
 
     
     esp_now_setup();
-    ESPNOWCALLBACK::add_callbacks();
+    EspnowCallback::add_callbacks();
     Serial.begin(115200);
     CROSSBEAM::motor_ser.begin(115200, SERIAL_8N1, 10, 9);
     setup_pins();
