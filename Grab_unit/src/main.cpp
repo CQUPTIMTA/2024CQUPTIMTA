@@ -11,10 +11,10 @@
 int ID=0;
 namespace GrapUnit{
   // //高度超声波
-  SENSOR high_sensor(37,38,true,10);
+  SENSOR high_sensor(37,38,false,10);
   // // X轴和Z轴超声波
-  SENSOR Y_sensor(14,21,true,10);     
-  SENSOR X_sensor(47,48,true,10);
+  SENSOR Y_sensor(14,21,false,10);     
+  SENSOR X_sensor(47,48,false,10);
   //电机串口
   HardwareSerial motor_ser=HardwareSerial(2);
   //舵机串口
@@ -57,13 +57,13 @@ namespace GrapUnit{
 
   //归零
   void rezero(){
-    X_motor.speed_control(60,0);
+    X_motor.speed_control(60*DATA.offset_dir,0);
     while(!digitalRead(11)){
       delay(1);
     }
-    X_motor.pulse_control(-256*1,30);
+    X_motor.pulse_control(-256*1*DATA.offset_dir,30);
     delay(1000);
-    X_motor.speed_control(3,0);
+    X_motor.speed_control(3*DATA.offset_dir,0);
     while(!digitalRead(11)){
       delay(1);
     }
@@ -95,11 +95,15 @@ namespace GrapUnit{
     }
   }
 
-  void move_to_x(float x,float speed,float acce=0,bool need_wait=true) {
+  void move_to_x(float x,float speed,float acce=0,bool need_wait=false) {
     float now=get_now_location_x();
+    Serial.print("now");
+    Serial.println(now);
     float delta=x-now;
-    int delta_pulse=delta*200*16/(20*2.0*PI);
-    X_motor.pulse_control(delta_pulse,speed,acce,false,true);
+    Serial.print("delta:");
+    Serial.println(delta);
+    int delta_pulse=200*16/(20*2.0*PI);
+    X_motor.pulse_control(delta_pulse,speed,acce);
     if(need_wait){
         wait_to_x(x);
     }
@@ -115,11 +119,15 @@ namespace GrapUnit{
     }
   }
 
-  void move_to_z(float z,float speed,float acce=0,bool need_wait=true) {
+  void move_to_z(float z,float speed,float acce=0,bool need_wait=false) {
     float now=get_location_z();
+    Serial.print("distance:");
+    Serial.println(now);
     float delta=z-now;
+    Serial.print("dalta:");
+    Serial.println(delta);
     int delta_pulse=delta*200*16/(5*2.0*PI);
-    Z_motor.pulse_control(DATA.Zdirection*delta_pulse,speed,acce,false,true);
+    Z_motor.pulse_control(DATA.Zdirection*delta_pulse,speed,acce);
     if(need_wait){
         wait_to_z(z);
     }
@@ -298,13 +306,12 @@ void setup() {
   GrapUnit::Y_sensor.setup();
   GrapUnit::DATA.setup();
   GrapUnit::DATA.read();
+  GrapUnit::DATA.Zdirection = -1;
+  GrapUnit::DATA.write();
   EspnowCallback::add_callbacks();
   ID=GrapUnit::DATA.ID;
   attachInterrupt(11,GrapUnit::IO11interrupt,CHANGE);
   //xTaskCreatePinnedToCore(GrapUnit::update_sensor,"update_sensor",2048,NULL,2,NULL,1);
-  //xTaskCreatePinnedToCore(GrapUnit::led_update,"led_update",2048,NULL,3,NULL,0);
-  //xTaskCreatePinnedToCore(GrapUnit::Servo_temperature_read,"Servo_temperature_read",2048,NULL,1,NULL,1);
-  // xTaskCreatePinnedToCore(GrapUnit::update_sensor,"update_sensor",2048,NULL,2,NULL,1);
   xTaskCreatePinnedToCore(GrapUnit::led_update,"led_update",2048,NULL,3,NULL,0);
   xTaskCreatePinnedToCore(GrapUnit::Servo_temperature_read,"Servo_temperature_read",2048,NULL,1,NULL,1);
 
@@ -320,18 +327,17 @@ void setup() {
   pinMode(11,INPUT_PULLDOWN);
   pinMode(laser_pin,OUTPUT_OPEN_DRAIN);
   digitalWrite(laser_pin,HIGH);
-  
-
 }
 
 void loop() {
-  for(int i = 1;i<=ID;i++){
-    digitalWrite(7,1);
-    delay(300);
-    digitalWrite(7,0);
-    delay(300);
-  }
-  delay(5000);
-  Serial.println(ID);
+  // for(int i = 1;i<=ID;i++){
+  //   digitalWrite(7,1);
+  //   delay(300);
+  //   digitalWrite(7,0);
+  //   delay(300);
+  // }
+  // delay(2000);
+  // Serial.println(GrapUnit::high_sensor.get_distance_mm());
+  // delay(200);
 }
 
