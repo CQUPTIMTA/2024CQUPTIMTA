@@ -38,6 +38,8 @@ void setup() {
   shell.addCommand(F("grap"), grap);
   //_Id name state
   shell.addCommand(F("enable"), enable);
+
+  shell.addCommand(F("laser"), laser);
   esp_now_setup();
 }
 
