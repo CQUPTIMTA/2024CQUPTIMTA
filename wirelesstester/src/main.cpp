@@ -38,6 +38,8 @@ void setup() {
   shell.addCommand(F("grap"), grap);
   //_Id name state
   shell.addCommand(F("enable"), enable);
+
+  
   esp_now_setup();
 }
 

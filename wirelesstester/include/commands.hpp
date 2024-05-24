@@ -408,4 +408,21 @@ int enable(int argc, char** args){
     shell.println(F("enable success"));
     return 0;
 }
+int laser(int argc, char** args){
+    if (argc != 3) {
+        shell.println("bad argument count");
+        return -1;
+    }
+    int _id=strtod(args[1],NULL);
+    bool state=strtod(args[2],NULL);
+    if(_id>20||_id<0){
+        shell.println(F("data error"));
+        return -1;
+    }
+    esp_now_send_package(package_type_request,_id,"laser",(uint8_t*)&state,1);
+    if(wait_package("laser")) return 0;
+    receive_datas.erase("laser");
+    shell.println(F("laser success"));
+    return 0;
+}
 #endif
