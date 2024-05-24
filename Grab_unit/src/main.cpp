@@ -169,7 +169,7 @@ namespace GrapUnit{
       }else{
         digitalWrite(4,0);
       }
-      if(grap_servo.SERVO_TEMP_READ()<60 &&grap_servo.SERVO_TEMP_READ()!=0){
+      if(grap_servo.SERVO_TEMP_READ()<70 &&grap_servo.SERVO_TEMP_READ()!=0){
         digitalWrite(18,1);
       }else{
         digitalWrite(18,0);
@@ -202,39 +202,39 @@ namespace GrapUnit{
 
 namespace EspnowCallback{
   void online_test(data_package redata){
-      esp_now_send_package(package_type_response,redata.id,"online_test",redata.data,redata.data_len,receive_MACAddress);
+      esp_now_send_package(package_type_response,redata.id,"online_test",nullptr,0,receive_MACAddress);
   };
   void auto_rezero(data_package redata){
     GrapUnit::rezero();
-    esp_now_send_package(package_type_response,redata.id,"auto_rezero",redata.data,redata.data_len,receive_MACAddress);
+    esp_now_send_package(package_type_response,redata.id,"auto_rezero",nullptr,0,receive_MACAddress);
   }
   void move_to_x(data_package redata){
     float y=*(float*)redata.data;
     float speed=*(float*)(redata.data+4);
     float acce=*(float*)(redata.data+8);
     GrapUnit::move_to_x(y,speed,acce);
-    esp_now_send_package(package_type_response,redata.id,"move_to_x",redata.data,redata.data_len,receive_MACAddress);
+    esp_now_send_package(package_type_response,redata.id,"move_to_x",nullptr,0,receive_MACAddress);
   }
   void move_x(data_package redata){
     float delta_x=*(float*)redata.data;
     float speed=*(float*)(redata.data+4);
     float acce=*(float*)(redata.data+8);
     GrapUnit::move_to_x(delta_x+GrapUnit::get_now_location_x(),speed,acce);
-    esp_now_send_package(package_type_response,redata.id,"move_x",redata.data,redata.data_len,receive_MACAddress);
+    esp_now_send_package(package_type_response,redata.id,"move_x",nullptr,0,receive_MACAddress);
   }
   void move_to_z(data_package redata){
     float y=*(float*)redata.data;
     float speed=*(float*)(redata.data+4);
     float acce=*(float*)(redata.data+8);
     GrapUnit::move_to_z(y,speed,acce);
-    esp_now_send_package(package_type_response,redata.id,"move_to_z",redata.data,redata.data_len,receive_MACAddress);
+    esp_now_send_package(package_type_response,redata.id,"move_to_z",nullptr,0,receive_MACAddress);
   }
   void move_z(data_package redata){
     float delta_z=*(float*)redata.data;
     float speed=*(float*)(redata.data+4);
     float acce=*(float*)(redata.data+8);
     GrapUnit::move_to_z(delta_z+GrapUnit::get_location_z(),speed,acce);
-    esp_now_send_package(package_type_response,redata.id,"move_z",redata.data,redata.data_len,receive_MACAddress);
+    esp_now_send_package(package_type_response,redata.id,"move_z",nullptr,0,receive_MACAddress);
   }
   void enable(data_package redata){
     char name=redata.data[0];
@@ -244,7 +244,7 @@ namespace EspnowCallback{
     }else if(name=='Z'){
       GrapUnit::Z_motor.enable(state);
     }
-    esp_now_send_package(package_type_response,redata.id,"enable",redata.data,redata.data_len,receive_MACAddress);
+    esp_now_send_package(package_type_response,redata.id,"enable",nullptr,0,receive_MACAddress);
   }
   void set_zero_point(data_package redata){
     float point=*(float*)redata.data;
@@ -252,7 +252,7 @@ namespace EspnowCallback{
   }
   void laser(data_package redata){
     digitalWrite(laser_pin,bool(redata.data[0]));
-    esp_now_send_package(package_type_response,redata.id,"laser",redata.data,redata.data_len,receive_MACAddress);
+    esp_now_send_package(package_type_response,redata.id,"laser",nullptr,0,receive_MACAddress);
   }
   void grap(data_package redata){
     float flag = *(float*)redata.data;
@@ -262,7 +262,7 @@ namespace EspnowCallback{
     else{
       GrapUnit::get_close();
     }
-    esp_now_send_package(package_type_response,redata.id,"grap",redata.data,redata.data_len,receive_MACAddress);
+    esp_now_send_package(package_type_response,redata.id,"grap",nullptr,0,receive_MACAddress);
   }
   void get_sensor_distance(data_package redata){
     char name=redata.data[0];
@@ -280,6 +280,15 @@ namespace EspnowCallback{
     float voltage=GrapUnit::X_motor.read_Bus_voltage()/1000.0;
     esp_now_send_package(package_type_response,redata.id,"get_voltage",(uint8_t*)&voltage,4,receive_MACAddress);
   }
+
+  void set_now_location(data_package redata){
+    float set_x=*(float*)redata.data;
+    float deleta=set_x-GrapUnit::get_now_location_x();
+    GrapUnit::DATA.X_ZERO_POINT=GrapUnit::DATA.X_ZERO_POINT+deleta;
+    GrapUnit::DATA.write();
+    esp_now_send_package(package_type_response,redata.id,"set_now_location",nullptr,0,receive_MACAddress);
+
+  }
   void add_callbacks(){
     callback_map["online_test"]=online_test;
     callback_map["auto_rezero"]=auto_rezero;
@@ -292,6 +301,8 @@ namespace EspnowCallback{
     callback_map["laser"]=laser;
     callback_map["grap"]=grap;
     callback_map["get_sensor_distance"]=get_sensor_distance;
+    callback_map["get_voltage"]=get_voltage;
+    callback_map["set_now_location"]=set_now_location;
   }
 }
 
@@ -306,7 +317,6 @@ void setup() {
   GrapUnit::Y_sensor.setup();
   GrapUnit::DATA.setup();
   GrapUnit::DATA.read();
-  GrapUnit::DATA.close();
   EspnowCallback::add_callbacks();
   ID=GrapUnit::DATA.ID;
   attachInterrupt(11,GrapUnit::IO11interrupt,CHANGE);
@@ -326,45 +336,12 @@ void setup() {
   pinMode(11,INPUT_PULLDOWN);
   pinMode(laser_pin,OUTPUT_OPEN_DRAIN);
   digitalWrite(laser_pin,LOW);
-  
-  // GrapUnit::Z_motor.pulse_control(-115*10,30,0);
-  // X_motor.pulse_control(location_to_pluse(-500),120,0);
-  // while(abs(-500-get_now_x_location())>10){
-  //   delay(50);
-  // }
-  // get_XY_centrol();
-  // delay(1000);
-  // get_XY_back();
-  // delay(1000);
-  // set_high(40);
-  // delay(1000);
 
-  // delay(1000);
-  // set_high(200);
-  // get_XY_centrol();
-  // delay(1000);
-  // get_XY_back();
-  // delay(1000);
-  // delay(10);
-  // // X_motor.pulse_control(location_to_pluse(-200),120,0);
-  // while(abs(-700-get_now_x_location())>10){
-  //   delay(50);
-  // }
-  // delay(10);
-  // grap_servo.SERVO_MOVE_TIME_WRITE(240*880/1000,0);
-
-  // delay(2000);
-  //Z_motor.enable(false,false,true);
 }
 
 void loop() {
   Serial.println(ID);
-  delay(10);
-  // //读取电机电压
-  // Serial.print("Z:");
-  // Serial.println(Z_motor.read_Bus_voltage());
-  // Serial.print("X:");
-  // Serial.println(X_motor.read_Bus_voltage());
-  // delay(200);
+  delay(1000);
+
 }
 
