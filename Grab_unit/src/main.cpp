@@ -29,17 +29,7 @@ namespace GrapUnit{
   HEServo X_servo(&servo_ser,2);
   HEServo Y_servo(&servo_ser,3);
 
-  void set_high(float high_mm){
-    //PID high_pid(2,0.001,0.001);
-    float error_h=high_mm-high_sensor.get_distance_mm();
-    
-    while(abs(error_h)>1){
-      error_h=high_mm-high_sensor.get_distance_mm();//计算需要移动的高度
-      Z_motor.pulse_control(error_h*(-115),100);//转一圈需要3600个脉冲，水平方向移动10*3.1415926 mm,移动1mm 需要约115个脉冲
-      delay(5);
-    }
-    Z_motor.speed_control(0,0,false,true);
-  }
+
   void get_close(){
       grap_servo.SERVO_MOVE_TIME_WRITE(240*DATA.grap_servo_close/1000,0);//745
   }
@@ -50,13 +40,11 @@ namespace GrapUnit{
   void get_XY_back(){
     X_servo.SERVO_MOVE_TIME_WRITE(240*830/1000,0);
     Y_servo.SERVO_MOVE_TIME_WRITE(240*240/1000,0);
-    delay(1);
   }
   void get_XY_centrol(){
     //需要按照需求调整下降高度
     X_servo.SERVO_MOVE_TIME_WRITE(240*344/1000,0);
     Y_servo.SERVO_MOVE_TIME_WRITE(240*719/1000,0);
-    delay(1);
   }
   void get_XY_measure(){
     get_XY_centrol();
@@ -141,12 +129,6 @@ namespace GrapUnit{
       high_sensor.update();
       X_sensor.update();
       Y_sensor.update();
-      // Serial.print("X:");
-      // Serial.println(X_sensor.get_distance_mm());
-      // Serial.print("Y:");
-      // Serial.println(Y_sensor.get_distance_mm());
-      // Serial.print("high:");
-      // Serial.println(high_sensor.get_distance_mm());
       delay(20);
     }
   }
@@ -189,7 +171,7 @@ namespace GrapUnit{
   }
   void Servo_temperature_read(void *p){
     while(1){
-      Serial.println(grap_servo.SERVO_TEMP_READ());
+      //Serial.println(grap_servo.SERVO_TEMP_READ());
       //如果夹爪舵机温度过高
       if(grap_servo.SERVO_TEMP_READ()>70){
         //温度过高让夹爪舵机掉电
@@ -264,6 +246,7 @@ namespace EspnowCallback{
     }
     esp_now_send_package(package_type_response,redata.id,"grap",redata.data,redata.data_len,receive_MACAddress);
   }
+
   void add_callbacks(){
     callback_map["online_test"]=online_test;
     callback_map["auto_rezero"]=auto_rezero;
@@ -277,8 +260,6 @@ namespace EspnowCallback{
     callback_map["grap"]=grap;
   }
 }
-
-
 
 void setup() {
   Serial.begin(115200);
@@ -294,7 +275,7 @@ void setup() {
   EspnowCallback::add_callbacks();
   ID=GrapUnit::DATA.ID;
   attachInterrupt(11,GrapUnit::IO11interrupt,CHANGE);
-  xTaskCreatePinnedToCore(GrapUnit::update_sensor,"update_sensor",2048,NULL,2,NULL,1);
+  // xTaskCreatePinnedToCore(GrapUnit::update_sensor,"update_sensor",2048,NULL,2,NULL,1);
   xTaskCreatePinnedToCore(GrapUnit::led_update,"led_update",2048,NULL,3,NULL,0);
   xTaskCreatePinnedToCore(GrapUnit::Servo_temperature_read,"Servo_temperature_read",2048,NULL,1,NULL,1);
 
@@ -310,45 +291,16 @@ void setup() {
   pinMode(11,INPUT_PULLDOWN);
   pinMode(laser_pin,OUTPUT_OPEN_DRAIN);
   digitalWrite(laser_pin,0);
-  
-  // GrapUnit::Z_motor.pulse_control(-115*10,30,0);
-  // X_motor.pulse_control(location_to_pluse(-500),120,0);
-  // while(abs(-500-get_now_x_location())>10){
-  //   delay(50);
-  // }
-  // get_XY_centrol();
-  // delay(1000);
-  // get_XY_back();
-  // delay(1000);
-  // set_high(40);
-  // delay(1000);
-
-  // delay(1000);
-  // set_high(200);
-  // get_XY_centrol();
-  // delay(1000);
-  // get_XY_back();
-  // delay(1000);
-  // delay(10);
-  // // X_motor.pulse_control(location_to_pluse(-200),120,0);
-  // while(abs(-700-get_now_x_location())>10){
-  //   delay(50);
-  // }
-  // delay(10);
-  // grap_servo.SERVO_MOVE_TIME_WRITE(240*880/1000,0);
-
-  // delay(2000);
-  //Z_motor.enable(false,false,true);
 }
 
 void loop() {
+  for(int i = 1;i<=ID;i++){
+    digitalWrite(7,1);
+    delay(300);
+    digitalWrite(7,0);
+    delay(300);
+  }
+  delay(5000);
   Serial.println(ID);
-  delay(10);
-  // //读取电机电压
-  // Serial.print("Z:");
-  // Serial.println(Z_motor.read_Bus_voltage());
-  // Serial.print("X:");
-  // Serial.println(X_motor.read_Bus_voltage());
-  // delay(200);
 }
 
