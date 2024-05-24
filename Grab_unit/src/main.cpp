@@ -28,8 +28,8 @@ namespace GrapUnit{
   HEServo grap_servo(&servo_ser,1);
   HEServo X_servo(&servo_ser,2);
   HEServo Y_servo(&servo_ser,3);
-
-
+  
+  //机械爪的开合
   void get_close(){
       grap_servo.SERVO_MOVE_TIME_WRITE(240*DATA.grap_servo_close/1000,0);//745
   }
@@ -83,18 +83,18 @@ namespace GrapUnit{
       return location*16*200/float(40*PI);
   }
 
-
+//获取当前X轴电机所处位置
   float get_now_location_x() {
     int64_t m1=X_motor.read_current_location()+DATA.X_ZERO_POINT*65535.0/(20*2.0*PI);
     return double(m1)*40.0*PI/65535.0;
   }
-
+//等待X轴电机移动到指定位置
   void wait_to_x(float x){
     while(abs(x-get_now_location_x())>10){
       delay(20);
     }
   }
-
+//移动到相对于X轴零点的距离
   void move_to_x(float x,float speed,float acce=0,bool need_wait=false) {
     float now=get_now_location_x();
     Serial.print("now");
@@ -108,7 +108,7 @@ namespace GrapUnit{
         wait_to_x(x);
     }
   }
-  /*          */
+  /* 获取Z轴当前高度         */
   float get_location_z(){
     
     return high_sensor.get_distance_mm(true);
@@ -118,7 +118,7 @@ namespace GrapUnit{
       delay(20);
     }
   }
-
+  //Z轴移动到相对于地面的距离
   void move_to_z(float z,float speed,float acce=0,bool need_wait=false) {
     float now=get_location_z();
     Serial.print("distance:");
@@ -132,6 +132,7 @@ namespace GrapUnit{
         wait_to_z(z);
     }
   }
+  //实时超声波距离更新
   void update_sensor(void* p){
     while(1){
       high_sensor.update();
@@ -177,6 +178,7 @@ namespace GrapUnit{
       delay(500);
     }
   }
+  //夹爪过温保护
   void Servo_temperature_read(void *p){
     while(1){
       //Serial.println(grap_servo.SERVO_TEMP_READ());
@@ -191,6 +193,7 @@ namespace GrapUnit{
 }
 
 namespace EspnowCallback{
+  //测试对应ID号的ESP32是否在线
   void online_test(data_package redata){
       esp_now_send_package(package_type_response,redata.id,"online_test",nullptr,0,receive_MACAddress);
   };
@@ -198,6 +201,7 @@ namespace EspnowCallback{
     GrapUnit::rezero();
     esp_now_send_package(package_type_response,redata.id,"auto_rezero",nullptr,0,receive_MACAddress);
   }
+  //移动x轴上的绝对位移（相对于x轴零点）
   void move_to_x(data_package redata){
     float y=*(float*)redata.data;
     float speed=*(float*)(redata.data+4);
@@ -205,6 +209,7 @@ namespace EspnowCallback{
     GrapUnit::move_to_x(y,speed,acce);
     esp_now_send_package(package_type_response,redata.id,"move_to_x",nullptr,0,receive_MACAddress);
   }
+//移动X轴上的相对位移（相对于当前位置）
   void move_x(data_package redata){
     float delta_x=*(float*)redata.data;
     float speed=*(float*)(redata.data+4);
@@ -212,6 +217,7 @@ namespace EspnowCallback{
     GrapUnit::move_to_x(delta_x+GrapUnit::get_now_location_x(),speed,acce);
     esp_now_send_package(package_type_response,redata.id,"move_x",nullptr,0,receive_MACAddress);
   }
+  //移动Z轴上的绝对位移（相对于地面）
   void move_to_z(data_package redata){
     float y=*(float*)redata.data;
     float speed=*(float*)(redata.data+4);
@@ -219,6 +225,7 @@ namespace EspnowCallback{
     GrapUnit::move_to_z(y,speed,acce);
     esp_now_send_package(package_type_response,redata.id,"move_to_z",nullptr,0,receive_MACAddress);
   }
+  //移动Z轴上的相对位移（相对于当前位置）
   void move_z(data_package redata){
     float delta_z=*(float*)redata.data;
     float speed=*(float*)(redata.data+4);
@@ -226,6 +233,7 @@ namespace EspnowCallback{
     GrapUnit::move_to_z(delta_z+GrapUnit::get_location_z(),speed,acce);
     esp_now_send_package(package_type_response,redata.id,"move_z",nullptr,0,receive_MACAddress);
   }
+  //电机使能
   void enable(data_package redata){
     char name=redata.data[0];
     bool state=(bool)redata.data[1];
@@ -236,14 +244,17 @@ namespace EspnowCallback{
     }
     esp_now_send_package(package_type_response,redata.id,"enable",nullptr,0,receive_MACAddress);
   }
+  //设置零点位置
   void set_zero_point(data_package redata){
     float point=*(float*)redata.data;
     GrapUnit::DATA.X_ZERO_POINT=point; 
   }
+  //激光定位
   void laser(data_package redata){
     digitalWrite(laser_pin,!bool(redata.data[0]));
     esp_now_send_package(package_type_response,redata.id,"laser",nullptr,0,receive_MACAddress);
   }
+  //机械爪的开合
   void grap(data_package redata){
     float flag = *(float*)redata.data;
     if(flag==1){
@@ -254,6 +265,7 @@ namespace EspnowCallback{
     }
     esp_now_send_package(package_type_response,redata.id,"grap",nullptr,0,receive_MACAddress);
   }
+  //获取X Y Z轴的超声波测得的距离
   void get_sensor_distance(data_package redata){
     char name=redata.data[0];
     float distance=0;
@@ -266,11 +278,12 @@ namespace EspnowCallback{
     }
     esp_now_send_package(package_type_response,redata.id,"get_sensor_distance",(uint8_t*)&distance,4,receive_MACAddress);
   }
+  //获取电机电压
   void get_voltage(data_package redata){
     float voltage=GrapUnit::X_motor.read_Bus_voltage()/1000.0;
     esp_now_send_package(package_type_response,redata.id,"get_voltage",(uint8_t*)&voltage,4,receive_MACAddress);
   }
-
+  //设置当前的位置
   void set_now_location(data_package redata){
     float set_x=*(float*)redata.data;
     float deleta=set_x-GrapUnit::get_now_location_x();
@@ -279,7 +292,7 @@ namespace EspnowCallback{
     esp_now_send_package(package_type_response,redata.id,"set_now_location",nullptr,0,receive_MACAddress);
 
   }
-
+  //接受信息触发对应回调函数
   void add_callbacks(){
     callback_map["online_test"]=online_test;
     callback_map["auto_rezero"]=auto_rezero;
