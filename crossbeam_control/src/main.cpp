@@ -1,5 +1,5 @@
 /*
- * @Description: 
+ * @Description:
  * @Author: qingmeijiupiao
  * @Date: 2024-02-01 13:16:20
  */
@@ -41,8 +41,8 @@ namespace CROSSBEAM {
     void wait_to_y(float y,float delta=10) {
         while(y-get_now_location_y()>delta){
             delay(20);
-        }    
-    }    
+        }
+    }
     //Y轴移动到,单位是mm
     void move_to_y(float y,float speed,float acce=0,bool need_wait=true) {
         float now=get_now_location_y();
@@ -95,7 +95,7 @@ namespace EspnowCallback {
     void get_y(data_package redata){
         float y=CROSSBEAM::get_now_location_y();
         esp_now_send_package(package_type_response,redata.id,"get_y",(uint8_t*)&y,sizeof(y),receive_MACAddress);
-        
+
     }
     void enable(data_package redata){
         char name=redata.data[0];
@@ -128,21 +128,24 @@ void setup() {
     DATA.read();
     DATA.close();
     ID=DATA.ID;
+    // DATA.ID=7;
+    // DATA.write();
 
-    
+
     esp_now_setup();
     EspnowCallback::add_callbacks();
     Serial.begin(115200);
     CROSSBEAM::motor_ser.begin(115200, SERIAL_8N1, 10, 9);
     setup_pins();
-    attachInterrupt(digitalPinToInterrupt(LEFT_SW_PIN), left_sw_interrupt, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(RIGHT_SW_PIN), right_sw_interrupt, CHANGE);
+    // attachInterrupt(digitalPinToInterrupt(LEFT_SW_PIN), left_sw_interrupt, CHANGE);
+    // attachInterrupt(digitalPinToInterrupt(RIGHT_SW_PIN), right_sw_interrupt, CHANGE);
     delay(1000);
 
 
 }
 
 void loop() {
-    
+    delay(1000);
+    Serial.println(ID);
 }
 
