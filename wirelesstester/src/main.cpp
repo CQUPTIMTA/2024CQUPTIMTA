@@ -39,7 +39,7 @@ void setup() {
   //_Id name state
   shell.addCommand(F("enable"), enable);
 
-  
+  shell.addCommand(F("laser"), laser);
   esp_now_setup();
 }
 
