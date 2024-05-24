@@ -264,6 +264,22 @@ namespace EspnowCallback{
     }
     esp_now_send_package(package_type_response,redata.id,"grap",redata.data,redata.data_len,receive_MACAddress);
   }
+  void get_sensor_distance(data_package redata){
+    char name=redata.data[0];
+    float distance=0;
+    if(name=='X'){
+      distance=GrapUnit::X_sensor.get_distance_mm();
+    }else if(name=='Y'){
+      distance=GrapUnit::Y_sensor.get_distance_mm();
+    }else if(name=='Z'){
+      distance=GrapUnit::high_sensor.get_distance_mm();
+    }
+    esp_now_send_package(package_type_response,redata.id,"get_sensor_distance",(uint8_t*)&distance,4,receive_MACAddress);
+  }
+  void get_voltage(data_package redata){
+    float voltage=GrapUnit::X_motor.read_Bus_voltage()/1000.0;
+    esp_now_send_package(package_type_response,redata.id,"get_voltage",(uint8_t*)&voltage,4,receive_MACAddress);
+  }
   void add_callbacks(){
     callback_map["online_test"]=online_test;
     callback_map["auto_rezero"]=auto_rezero;
@@ -275,6 +291,7 @@ namespace EspnowCallback{
     callback_map["set_zero_point"]=set_zero_point;
     callback_map["laser"]=laser;
     callback_map["grap"]=grap;
+    callback_map["get_sensor_distance"]=get_sensor_distance;
   }
 }
 
@@ -308,7 +325,7 @@ void setup() {
   pinMode(18,OUTPUT);
   pinMode(11,INPUT_PULLDOWN);
   pinMode(laser_pin,OUTPUT_OPEN_DRAIN);
-  digitalWrite(laser_pin,0);
+  digitalWrite(laser_pin,LOW);
   
   // GrapUnit::Z_motor.pulse_control(-115*10,30,0);
   // X_motor.pulse_control(location_to_pluse(-500),120,0);

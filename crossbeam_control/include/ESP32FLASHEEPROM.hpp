@@ -1,3 +1,8 @@
+/*
+ * @Description: 
+ * @Author: qingmeijiupiao
+ * @Date: 2024-02-04 13:11:09
+ */
 #ifndef ESP32FLASHEEPROM_HPP
 #define ESP32FLASHEEPROM_HPP
 
@@ -13,14 +18,14 @@ class NVSDATA{
     void read(){
         ID=preferences.getInt("ID",0);
         offset_dir=preferences.getInt("offset_dir",1);
-        X_ZERO_POINT=preferences.getFloat("Y_ZERO_POINT",0);
+        Y_ZERO_POINT=preferences.getFloat("Y_ZERO_POINT",0);
 
     }
 
     void write(){
         preferences.putInt("ID",ID);
         preferences.putInt("offset_dir",offset_dir);
-        preferences.putFloat("Y_ZERO_POINT",X_ZERO_POINT);
+        preferences.putFloat("Y_ZERO_POINT",Y_ZERO_POINT);
 
     }
     void close(){
