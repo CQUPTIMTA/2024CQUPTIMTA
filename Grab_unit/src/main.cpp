@@ -195,7 +195,7 @@ namespace GrapUnit{
         //温度过高让夹爪舵机掉电
       grap_servo.SERVO_LOAD_OR_UNLOAD_WRITE(0);
       }
-      delay(10);
+      delay(4000);
     }
   }
 }
@@ -251,7 +251,7 @@ namespace EspnowCallback{
     GrapUnit::DATA.X_ZERO_POINT=point; 
   }
   void laser(data_package redata){
-    digitalWrite(laser_pin,bool(redata.data[0]));
+    digitalWrite(laser_pin,!bool(redata.data[0]));
     esp_now_send_package(package_type_response,redata.id,"laser",nullptr,0,receive_MACAddress);
   }
   void grap(data_package redata){
@@ -320,9 +320,9 @@ void setup() {
   EspnowCallback::add_callbacks();
   ID=GrapUnit::DATA.ID;
   attachInterrupt(11,GrapUnit::IO11interrupt,CHANGE);
-  xTaskCreatePinnedToCore(GrapUnit::update_sensor,"update_sensor",2048,NULL,2,NULL,1);
-  xTaskCreatePinnedToCore(GrapUnit::led_update,"led_update",2048,NULL,3,NULL,0);
-  xTaskCreatePinnedToCore(GrapUnit::Servo_temperature_read,"Servo_temperature_read",2048,NULL,1,NULL,1);
+  //xTaskCreatePinnedToCore(GrapUnit::update_sensor,"update_sensor",2048,NULL,2,NULL,1);
+  //xTaskCreatePinnedToCore(GrapUnit::led_update,"led_update",2048,NULL,3,NULL,0);
+  //xTaskCreatePinnedToCore(GrapUnit::Servo_temperature_read,"Servo_temperature_read",2048,NULL,1,NULL,1);
 
   esp_now_setup();
   pinMode(4,OUTPUT);
@@ -335,13 +335,18 @@ void setup() {
   pinMode(18,OUTPUT);
   pinMode(11,INPUT_PULLDOWN);
   pinMode(laser_pin,OUTPUT_OPEN_DRAIN);
-  digitalWrite(laser_pin,LOW);
+  digitalWrite(laser_pin,HIGH);
+  
 
 }
 
 void loop() {
-  Serial.println(ID);
-  delay(1000);
-
+  for(int i=0;i<ID;i++){
+    digitalWrite(7,HIGH);
+    delay(200);
+    digitalWrite(7,LOW);
+    delay(200);
+  }
+  delay(2000);
 }
 
