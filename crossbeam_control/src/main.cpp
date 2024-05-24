@@ -145,11 +145,7 @@ void setup() {
 }
 
 void loop() {
-    delay(300);
-    Serial.println(ID); 
-
-    // digitalWrite(LEFT_SW_LED,1);
-    // delay(300);
-    // digitalWrite(LEFT_SW_LED,0);
+    delay(1000);
+    Serial.println(ID);
 }
 
