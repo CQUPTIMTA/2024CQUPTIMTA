@@ -343,14 +343,12 @@ void setup() {
 }
 
 void loop() {
-  // for(int i = 1;i<=ID;i++){
-  //   digitalWrite(7,1);
-  //   delay(300);
-  //   digitalWrite(7,0);
-  //   delay(300);
-  // }
-  // delay(2000);
-  // Serial.println(GrapUnit::high_sensor.get_distance_mm());
-  // delay(200);
+  for(int i = 1;i<=ID;i++){
+    digitalWrite(7,1);
+    delay(300);
+    digitalWrite(7,0);
+    delay(300);
+  }
+  delay(2000);
 }
 
