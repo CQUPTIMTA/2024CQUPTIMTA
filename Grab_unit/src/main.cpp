@@ -99,7 +99,7 @@ namespace GrapUnit{
   void move_to_x(float x,float speed,float acce=0,bool need_wait=false) {
     float now=get_now_location_x();
     float delta=x-now;
-    int delta_pulse=200*16/(20*2.0*PI);
+    int delta_pulse=delta*200*16/(20*2.0*PI);
     X_motor.pulse_control(delta_pulse,speed,acce);
     if(need_wait){
         wait_to_x(x);
