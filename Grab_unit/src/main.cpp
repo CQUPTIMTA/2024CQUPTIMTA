@@ -294,9 +294,8 @@ namespace EspnowCallback{
     GrapUnit::DATA.X_ZERO_POINT=GrapUnit::DATA.X_ZERO_POINT+deleta;
     GrapUnit::DATA.write();
     esp_now_send_package(package_type_response,redata.id,"set_now_location",nullptr,0,receive_MACAddress);
-
   }
-  //接受信息触发对应回调函数
+  //添加回调函数到map
   void add_callbacks(){
     callback_map["online_test"]=online_test;
     callback_map["auto_rezero"]=auto_rezero;
@@ -311,6 +310,8 @@ namespace EspnowCallback{
     callback_map["get_sensor_distance"]=get_sensor_distance;
     callback_map["get_voltage"]=get_voltage;
     callback_map["set_now_location"]=set_now_location;
+    callback_map["get_x"]=get_x;
+    callback_map["get_z"]=get_z;
   }
 }
 

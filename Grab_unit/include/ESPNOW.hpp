@@ -12,8 +12,6 @@
 #include <map>
 extern int ID;
 
-int last_time_receive_time=0;
-
 uint8_t receive_MACAddress[] ={0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 
 enum package_type {
@@ -112,11 +110,7 @@ using DataPackageCallback = void (*)(data_package);
 // 创建一个回调函数映射表
 std::map<String, DataPackageCallback> callback_map;
 
-
-
-
-
-
+// 缓存
 data_package re_data;
 //处理数据时的回调函数
 void package_response(void* p){
@@ -141,7 +135,6 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
   
   // //如果有对应的回调函数，则执行
   xTaskCreate(package_response, "package_response_task", 4096,&re_data, 1, NULL);
-  last_time_receive_time=millis();
 }
 
 //通过espnow发送数据
