@@ -9,6 +9,7 @@
 
 
 int ID=0;
+// 控制相关函数
 namespace GrapUnit{
   // //高度超声波
   SENSOR high_sensor(37,38,false,10);
@@ -97,11 +98,7 @@ namespace GrapUnit{
 //移动到相对于X轴零点的距离
   void move_to_x(float x,float speed,float acce=0,bool need_wait=false) {
     float now=get_now_location_x();
-    Serial.print("now");
-    Serial.println(now);
     float delta=x-now;
-    Serial.print("delta:");
-    Serial.println(delta);
     int delta_pulse=200*16/(20*2.0*PI);
     X_motor.pulse_control(delta_pulse,speed,acce);
     if(need_wait){
@@ -121,11 +118,7 @@ namespace GrapUnit{
   //Z轴移动到相对于地面的距离
   void move_to_z(float z,float speed,float acce=0,bool need_wait=false) {
     float now=get_location_z();
-    Serial.print("distance:");
-    Serial.println(now);
     float delta=z-now;
-    Serial.print("dalta:");
-    Serial.println(delta);
     int delta_pulse=delta*200*16/(5*2.0*PI);
     Z_motor.pulse_control(DATA.Zdirection*delta_pulse,speed,acce);
     if(need_wait){
@@ -175,13 +168,12 @@ namespace GrapUnit{
       }else{
         digitalWrite(16,0);
       }
-      delay(500);
+      delay(2000);
     }
   }
   //夹爪过温保护
   void Servo_temperature_read(void *p){
     while(1){
-      //Serial.println(grap_servo.SERVO_TEMP_READ());
       //如果夹爪舵机温度过高
       if(grap_servo.SERVO_TEMP_READ()>70){
         //温度过高让夹爪舵机掉电
@@ -192,16 +184,18 @@ namespace GrapUnit{
   }
 }
 
+//无线指令回调函数
 namespace EspnowCallback{
   //测试对应ID号的ESP32是否在线
   void online_test(data_package redata){
       esp_now_send_package(package_type_response,redata.id,"online_test",nullptr,0,receive_MACAddress);
   };
+  //自动校准零点
   void auto_rezero(data_package redata){
     GrapUnit::rezero();
     esp_now_send_package(package_type_response,redata.id,"auto_rezero",nullptr,0,receive_MACAddress);
   }
-  //移动x轴上的绝对位移（相对于x轴零点）
+  //移动x轴上的绝对位移（相对于全局坐标系）
   void move_to_x(data_package redata){
     float y=*(float*)redata.data;
     float speed=*(float*)(redata.data+4);
@@ -216,6 +210,11 @@ namespace EspnowCallback{
     float acce=*(float*)(redata.data+8);
     GrapUnit::move_to_x(delta_x+GrapUnit::get_now_location_x(),speed,acce);
     esp_now_send_package(package_type_response,redata.id,"move_x",nullptr,0,receive_MACAddress);
+  }
+  //获取X轴当前位置
+  void get_x(data_package redata){
+    float x=GrapUnit::get_now_location_x();
+    esp_now_send_package(package_type_response,redata.id,"get_x",(uint8_t*)&x,4,receive_MACAddress);
   }
   //移动Z轴上的绝对位移（相对于地面）
   void move_to_z(data_package redata){
@@ -232,6 +231,11 @@ namespace EspnowCallback{
     float acce=*(float*)(redata.data+8);
     GrapUnit::move_to_z(delta_z+GrapUnit::get_location_z(),speed,acce);
     esp_now_send_package(package_type_response,redata.id,"move_z",nullptr,0,receive_MACAddress);
+  }
+  //获取Z轴当前位置
+  void get_z(data_package redata){
+    float z=GrapUnit::get_location_z();
+    esp_now_send_package(package_type_response,redata.id,"get_z",(uint8_t*)&z,4,receive_MACAddress);
   }
   //电机使能
   void enable(data_package redata){
@@ -283,7 +287,7 @@ namespace EspnowCallback{
     float voltage=GrapUnit::X_motor.read_Bus_voltage()/1000.0;
     esp_now_send_package(package_type_response,redata.id,"get_voltage",(uint8_t*)&voltage,4,receive_MACAddress);
   }
-  //设置当前的位置
+  //设置当前X的位置,用于校准归零零点
   void set_now_location(data_package redata){
     float set_x=*(float*)redata.data;
     float deleta=set_x-GrapUnit::get_now_location_x();
@@ -310,25 +314,10 @@ namespace EspnowCallback{
   }
 }
 
-void setup() {
-  Serial.begin(115200);
-  GrapUnit::motor_ser.begin(115200,SERIAL_8N1,10,9);
-  GrapUnit::servo_ser.begin(115200,SERIAL_8N1,35,36);
-  GrapUnit::high_sensor.setup();
-  GrapUnit::X_sensor.setup();
-  GrapUnit::Y_sensor.setup();
-  GrapUnit::DATA.setup();
-  GrapUnit::DATA.read();
-  GrapUnit::DATA.Zdirection = -1;
-  GrapUnit::DATA.write();
-  EspnowCallback::add_callbacks();
-  ID=GrapUnit::DATA.ID;
-  attachInterrupt(11,GrapUnit::IO11interrupt,CHANGE);
-  //xTaskCreatePinnedToCore(GrapUnit::update_sensor,"update_sensor",2048,NULL,2,NULL,1);
-  xTaskCreatePinnedToCore(GrapUnit::led_update,"led_update",2048,NULL,3,NULL,0);
-  xTaskCreatePinnedToCore(GrapUnit::Servo_temperature_read,"Servo_temperature_read",2048,NULL,1,NULL,1);
 
-  esp_now_setup();
+
+//初始化引脚
+void PINSetup(){
   pinMode(4,OUTPUT);
   pinMode(5,OUTPUT);
   pinMode(6,OUTPUT);
@@ -340,17 +329,39 @@ void setup() {
   pinMode(11,INPUT_PULLDOWN);
   pinMode(laser_pin,OUTPUT_OPEN_DRAIN);
   digitalWrite(laser_pin,HIGH);
+  attachInterrupt(11,GrapUnit::IO11interrupt,CHANGE);
+}
+void setup() {
+  Serial.begin(115200);
+
+  GrapUnit::motor_ser.begin(115200,SERIAL_8N1,10,9);
+  GrapUnit::servo_ser.begin(115200,SERIAL_8N1,35,36);
+  GrapUnit::high_sensor.setup();
+  GrapUnit::X_sensor.setup();
+  GrapUnit::Y_sensor.setup();
+  //从NVS中读取数据,实现代码的复用
+  GrapUnit::DATA.setup();
+  GrapUnit::DATA.read();
+
+  //初始化引脚
+  PINSetup();
+
+  /*无线控制部分*/
+  EspnowCallback::add_callbacks();
+  esp_now_setup();
+
+  ID=GrapUnit::DATA.ID;
+
+  /*一些任务*/
+  //xTaskCreatePinnedToCore(GrapUnit::update_sensor,"update_sensor",2048,NULL,2,NULL,1);
+  //指示灯更新任务
+  xTaskCreatePinnedToCore(GrapUnit::led_update,"led_update",2048,NULL,3,NULL,0);
+  //舵机高温保护
+  xTaskCreatePinnedToCore(GrapUnit::Servo_temperature_read,"Servo_protect",2048,NULL,1,NULL,1);
+
 }
 
 void loop() {
-  // for(int i = 1;i<=ID;i++){
-  //   digitalWrite(7,1);
-  //   delay(300);
-  //   digitalWrite(7,0);
-  //   delay(300);
-  // }
-  // delay(2000);
-  // Serial.println(GrapUnit::high_sensor.get_distance_mm());
-  // delay(200);
+
 }
 
