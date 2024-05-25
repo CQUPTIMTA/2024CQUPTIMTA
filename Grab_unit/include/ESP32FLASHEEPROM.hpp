@@ -80,14 +80,14 @@ class ESP32FLASHEEPROM{
     // ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓这里写需要存放在FLASH的数据↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     uint8_t ID=0;
     float temperature=0;
-    int8_t Xdirection=1;    //X电机的正方向旋转变量
-    int8_t Zdirection=1;     //Z电机的正方向旋转变量
+    int Xdirection=1;    //X电机的正方向旋转变量
+    int Zdirection=1;     //Z电机的正方向旋转变量
     float Ysensor_zero_point=0; //Y超声波相对于抓取中心点的偏移，单位mm
     float Xsensor_zero_point=0;//X超声波相对于抓取中心点的偏移，单位mm
     float PUT_Z_POINT=0;//放砝码时Z超声波的高度，单位mm
     float TAKE_Z_POINT=0;//拿砝码Z超声波的高度，单位mm
     float sensor_high=0;//使用xy超声波定位时向上移动的距离，单位mm
-    int8_t offset_dir = 1;//归零时应该走向的方向 1为X正方向 -1为X负方向
+    int offset_dir = 1;//归零时应该走向的方向 1为X正方向 -1为X负方向
     float X_ZERO_POINT=0;// 碰到归零点的X坐标，单位mm
     float X_PLUSE_MM=0;//X轴移动一毫米的脉冲数
     float Z_PLUSE_MM=0;//Z轴移动一毫米的脉冲数

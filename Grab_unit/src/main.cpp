@@ -11,10 +11,10 @@
 int ID=0;
 namespace GrapUnit{
   // //高度超声波
-  SENSOR high_sensor(37,38,true,10);
+  SENSOR high_sensor(37,38,false,10);
   // // X轴和Z轴超声波
-  SENSOR Y_sensor(14,21,true,10);     
-  SENSOR X_sensor(47,48,true,10);
+  SENSOR Y_sensor(14,21,false,10);     
+  SENSOR X_sensor(47,48,false,10);
   //电机串口
   HardwareSerial motor_ser=HardwareSerial(2);
   //舵机串口
@@ -28,8 +28,8 @@ namespace GrapUnit{
   HEServo grap_servo(&servo_ser,1);
   HEServo X_servo(&servo_ser,2);
   HEServo Y_servo(&servo_ser,3);
-
-
+  
+  //机械爪的开合
   void get_close(){
       grap_servo.SERVO_MOVE_TIME_WRITE(240*DATA.grap_servo_close/1000,0);//745
   }
@@ -57,13 +57,13 @@ namespace GrapUnit{
 
   //归零
   void rezero(){
-    X_motor.speed_control(60,0);
+    X_motor.speed_control(60*DATA.offset_dir,0);
     while(!digitalRead(11)){
       delay(1);
     }
-    X_motor.pulse_control(-256*1,30);
+    X_motor.pulse_control(-256*1*DATA.offset_dir,30);
     delay(1000);
-    X_motor.speed_control(3,0);
+    X_motor.speed_control(3*DATA.offset_dir,0);
     while(!digitalRead(11)){
       delay(1);
     }
@@ -83,28 +83,32 @@ namespace GrapUnit{
       return location*16*200/float(40*PI);
   }
 
-
+//获取当前X轴电机所处位置
   float get_now_location_x() {
     int64_t m1=X_motor.read_current_location()+DATA.X_ZERO_POINT*65535.0/(20*2.0*PI);
     return double(m1)*40.0*PI/65535.0;
   }
-
+//等待X轴电机移动到指定位置
   void wait_to_x(float x){
     while(abs(x-get_now_location_x())>10){
       delay(20);
     }
   }
-
-  void move_to_x(float x,float speed,float acce=0,bool need_wait=true) {
+//移动到相对于X轴零点的距离
+  void move_to_x(float x,float speed,float acce=0,bool need_wait=false) {
     float now=get_now_location_x();
+    Serial.print("now");
+    Serial.println(now);
     float delta=x-now;
-    int delta_pulse=delta*200*16/(20*2.0*PI);
-    X_motor.pulse_control(delta_pulse,speed,acce,false,true);
+    Serial.print("delta:");
+    Serial.println(delta);
+    int delta_pulse=200*16/(20*2.0*PI);
+    X_motor.pulse_control(delta_pulse,speed,acce);
     if(need_wait){
         wait_to_x(x);
     }
   }
-  /*          */
+  /* 获取Z轴当前高度         */
   float get_location_z(){
     
     return high_sensor.get_distance_mm(true);
@@ -114,16 +118,21 @@ namespace GrapUnit{
       delay(20);
     }
   }
-
-  void move_to_z(float z,float speed,float acce=0,bool need_wait=true) {
+  //Z轴移动到相对于地面的距离
+  void move_to_z(float z,float speed,float acce=0,bool need_wait=false) {
     float now=get_location_z();
+    Serial.print("distance:");
+    Serial.println(now);
     float delta=z-now;
+    Serial.print("dalta:");
+    Serial.println(delta);
     int delta_pulse=delta*200*16/(5*2.0*PI);
-    Z_motor.pulse_control(DATA.Zdirection*delta_pulse,speed,acce,false,true);
+    Z_motor.pulse_control(DATA.Zdirection*delta_pulse,speed,acce);
     if(need_wait){
         wait_to_z(z);
     }
   }
+  //实时超声波距离更新
   void update_sensor(void* p){
     while(1){
       high_sensor.update();
@@ -169,6 +178,7 @@ namespace GrapUnit{
       delay(500);
     }
   }
+  //夹爪过温保护
   void Servo_temperature_read(void *p){
     while(1){
       //Serial.println(grap_servo.SERVO_TEMP_READ());
@@ -183,6 +193,7 @@ namespace GrapUnit{
 }
 
 namespace EspnowCallback{
+  //测试对应ID号的ESP32是否在线
   void online_test(data_package redata){
       esp_now_send_package(package_type_response,redata.id,"online_test",nullptr,0,receive_MACAddress);
   };
@@ -190,6 +201,7 @@ namespace EspnowCallback{
     GrapUnit::rezero();
     esp_now_send_package(package_type_response,redata.id,"auto_rezero",nullptr,0,receive_MACAddress);
   }
+  //移动x轴上的绝对位移（相对于x轴零点）
   void move_to_x(data_package redata){
     float y=*(float*)redata.data;
     float speed=*(float*)(redata.data+4);
@@ -197,6 +209,7 @@ namespace EspnowCallback{
     GrapUnit::move_to_x(y,speed,acce);
     esp_now_send_package(package_type_response,redata.id,"move_to_x",nullptr,0,receive_MACAddress);
   }
+//移动X轴上的相对位移（相对于当前位置）
   void move_x(data_package redata){
     float delta_x=*(float*)redata.data;
     float speed=*(float*)(redata.data+4);
@@ -204,6 +217,7 @@ namespace EspnowCallback{
     GrapUnit::move_to_x(delta_x+GrapUnit::get_now_location_x(),speed,acce);
     esp_now_send_package(package_type_response,redata.id,"move_x",nullptr,0,receive_MACAddress);
   }
+  //移动Z轴上的绝对位移（相对于地面）
   void move_to_z(data_package redata){
     float y=*(float*)redata.data;
     float speed=*(float*)(redata.data+4);
@@ -211,6 +225,7 @@ namespace EspnowCallback{
     GrapUnit::move_to_z(y,speed,acce);
     esp_now_send_package(package_type_response,redata.id,"move_to_z",nullptr,0,receive_MACAddress);
   }
+  //移动Z轴上的相对位移（相对于当前位置）
   void move_z(data_package redata){
     float delta_z=*(float*)redata.data;
     float speed=*(float*)(redata.data+4);
@@ -218,6 +233,7 @@ namespace EspnowCallback{
     GrapUnit::move_to_z(delta_z+GrapUnit::get_location_z(),speed,acce);
     esp_now_send_package(package_type_response,redata.id,"move_z",nullptr,0,receive_MACAddress);
   }
+  //电机使能
   void enable(data_package redata){
     char name=redata.data[0];
     bool state=(bool)redata.data[1];
@@ -228,14 +244,17 @@ namespace EspnowCallback{
     }
     esp_now_send_package(package_type_response,redata.id,"enable",nullptr,0,receive_MACAddress);
   }
+  //设置零点位置
   void set_zero_point(data_package redata){
     float point=*(float*)redata.data;
     GrapUnit::DATA.X_ZERO_POINT=point; 
   }
+  //激光定位
   void laser(data_package redata){
     digitalWrite(laser_pin,!bool(redata.data[0]));
     esp_now_send_package(package_type_response,redata.id,"laser",nullptr,0,receive_MACAddress);
   }
+  //机械爪的开合
   void grap(data_package redata){
     float flag = *(float*)redata.data;
     if(flag==1){
@@ -246,6 +265,7 @@ namespace EspnowCallback{
     }
     esp_now_send_package(package_type_response,redata.id,"grap",nullptr,0,receive_MACAddress);
   }
+  //获取X Y Z轴的超声波测得的距离
   void get_sensor_distance(data_package redata){
     char name=redata.data[0];
     float distance=0;
@@ -258,11 +278,12 @@ namespace EspnowCallback{
     }
     esp_now_send_package(package_type_response,redata.id,"get_sensor_distance",(uint8_t*)&distance,4,receive_MACAddress);
   }
+  //获取电机电压
   void get_voltage(data_package redata){
     float voltage=GrapUnit::X_motor.read_Bus_voltage()/1000.0;
     esp_now_send_package(package_type_response,redata.id,"get_voltage",(uint8_t*)&voltage,4,receive_MACAddress);
   }
-
+  //设置当前的位置
   void set_now_location(data_package redata){
     float set_x=*(float*)redata.data;
     float deleta=set_x-GrapUnit::get_now_location_x();
@@ -271,7 +292,7 @@ namespace EspnowCallback{
     esp_now_send_package(package_type_response,redata.id,"set_now_location",nullptr,0,receive_MACAddress);
 
   }
-
+  //接受信息触发对应回调函数
   void add_callbacks(){
     callback_map["online_test"]=online_test;
     callback_map["auto_rezero"]=auto_rezero;
@@ -298,13 +319,12 @@ void setup() {
   GrapUnit::Y_sensor.setup();
   GrapUnit::DATA.setup();
   GrapUnit::DATA.read();
+  GrapUnit::DATA.Zdirection = -1;
+  GrapUnit::DATA.write();
   EspnowCallback::add_callbacks();
   ID=GrapUnit::DATA.ID;
   attachInterrupt(11,GrapUnit::IO11interrupt,CHANGE);
   //xTaskCreatePinnedToCore(GrapUnit::update_sensor,"update_sensor",2048,NULL,2,NULL,1);
-  //xTaskCreatePinnedToCore(GrapUnit::led_update,"led_update",2048,NULL,3,NULL,0);
-  //xTaskCreatePinnedToCore(GrapUnit::Servo_temperature_read,"Servo_temperature_read",2048,NULL,1,NULL,1);
-  // xTaskCreatePinnedToCore(GrapUnit::update_sensor,"update_sensor",2048,NULL,2,NULL,1);
   xTaskCreatePinnedToCore(GrapUnit::led_update,"led_update",2048,NULL,3,NULL,0);
   xTaskCreatePinnedToCore(GrapUnit::Servo_temperature_read,"Servo_temperature_read",2048,NULL,1,NULL,1);
 
@@ -320,18 +340,17 @@ void setup() {
   pinMode(11,INPUT_PULLDOWN);
   pinMode(laser_pin,OUTPUT_OPEN_DRAIN);
   digitalWrite(laser_pin,HIGH);
-  
-
 }
 
 void loop() {
-  for(int i = 1;i<=ID;i++){
-    digitalWrite(7,1);
-    delay(300);
-    digitalWrite(7,0);
-    delay(300);
-  }
-  delay(5000);
-  Serial.println(ID);
+  // for(int i = 1;i<=ID;i++){
+  //   digitalWrite(7,1);
+  //   delay(300);
+  //   digitalWrite(7,0);
+  //   delay(300);
+  // }
+  // delay(2000);
+  // Serial.println(GrapUnit::high_sensor.get_distance_mm());
+  // delay(200);
 }
 
