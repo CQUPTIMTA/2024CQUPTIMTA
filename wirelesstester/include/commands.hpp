@@ -9,16 +9,20 @@
 #include "SimpleSerialShell.h"
 #include "ESPNOW.hpp"
 #include <stdlib.h>
+#include <map>
+
+std::map<String, String> help_map;
 
 
 
-bool wait_package(String name){
+
+bool wait_package(String name,int timeout=3000,bool need_show=true){
     int i=0;
     while(receive_datas.find(name)==receive_datas.end()){
       delay(10);
       i++;
-      if(i>300){
-        shell.println(F("time out"));
+      if(i>timeout/10){
+        if(need_show) shell.println(F("time out"));
         return true;
       }
     }
@@ -39,29 +43,57 @@ int showinfo(int /*argc*/ = 0, char** /*argv*/ = NULL)
 };
 //在线测试
 int online_test(int argc, char** args){
-    if(argc != 2){
+
+    if (argc==2){
+        int pra=strtod(args[1],NULL);
+        esp_now_send_package(package_type_request,pra,"online_test",nullptr,0,receive_MACAddress);
+        //等待响应
+        if(wait_package("online_test")) return 0;
+        //解析响应
+        if(receive_datas["online_test"].id==pra){
+            shell.print(F("ID:"));
+            shell.print(pra);
+            shell.println(F(" is online"));
+            //缓存map清除响应包
+            receive_datas.erase("online_test");
+        }
+    }else if(argc==3){
+        auto test_func=[&](int id){
+            esp_now_send_package(package_type_request,id,"online_test",nullptr,0,receive_MACAddress);
+            //等待响应
+            if(wait_package("online_test",1000,false)){
+                shell.print(F("ID:"));
+                shell.print(id);
+                shell.println(F(" is #offline#"));
+            }else{
+                if(receive_datas["online_test"].id==id){
+                    shell.print(F("ID:"));
+                    shell.print(id);
+                    shell.println(F(" is online"));
+                    //缓存map清除响应包
+                    receive_datas.erase("online_test");
+                }
+            }
+        };
+        int start_id=strtod(args[1],NULL);
+        int end_id=strtod(args[2],NULL);
+        for(int i=start_id;i<=end_id;i++){
+            test_func(i);
+            delay(10);
+        }
+    }else{
         shell.println("bad argument count");
+        shell.println(help_map["test"]);
         return -1;
+
     }
-    int pra=strtod(args[1],NULL);
-    //发送请求
-    esp_now_send_package(package_type_request,pra,"online_test",nullptr,0,receive_MACAddress);
-    //等待响应
-    if(wait_package("online_test")) return 0;
-    //解析响应
-    if(receive_datas["online_test"].id==pra){
-        shell.print(F("ID:"));
-        shell.print(pra);
-        shell.println(F(" is online"));
-    }
-    //缓存map清除响应包
-    receive_datas.erase("online_test");
-    return 0;
+    return -1;
 }
 //获取Y坐标
 int get_y(int argc, char** args){
     if (argc != 2) {
         shell.println("bad argument count");
+        shell.println(help_map["getY"]);
         return -1;
     }
     int pra=strtod(args[1],NULL);
@@ -84,6 +116,7 @@ int get_y(int argc, char** args){
 int get_x(int argc, char** args){
     if (argc != 2) {
         shell.println("bad argument count");
+        shell.println(help_map["getX"]);
         return -1;
     }
     int pra=strtod(args[1],NULL);
@@ -106,6 +139,7 @@ int get_x(int argc, char** args){
 int get_z(int argc, char** args){
     if (argc != 2) {
         shell.println("bad argument count");
+        shell.println(help_map["getZ"]);
         return -1;
     }
     int pra=strtod(args[1],NULL);
@@ -129,6 +163,7 @@ int get_z(int argc, char** args){
 int get_sensor(int argc, char** args){
     if (argc != 2) {
         shell.println("bad argument count");
+        shell.println(help_map["getSensor"]);
         return -1;
     }
     int pra=strtod(args[1],NULL);
@@ -150,6 +185,7 @@ int get_sensor(int argc, char** args){
 int get_voltage(int argc, char** args){
     if (argc != 2) {
         shell.println("bad argument count");
+        shell.println(help_map["getVoltage"]);
         return -1;
     }
     int pra=strtod(args[1],NULL);
@@ -171,6 +207,7 @@ int get_voltage(int argc, char** args){
 int get_zero_point(int argc, char** args){
     if (argc != 2) {
         shell.println("bad argument count");
+        shell.println(help_map["get_zero_point"]);
         return -1;
     }
     int pra=strtod(args[1],NULL);
@@ -192,6 +229,7 @@ int get_zero_point(int argc, char** args){
 int rezero(int argc, char** args){
     if (argc != 2) {
         shell.println("bad argument count");
+        shell.println(help_map["rezero"]);
         return -1;
     }
     int pra=strtod(args[1],NULL);
@@ -210,6 +248,7 @@ int rezero(int argc, char** args){
 int set_zero_point(int argc, char** args){
     if (argc != 3) {
         shell.println("bad argument count");
+        shell.println(help_map["set_zero_point"]);
         return -1;
     }
     int _id=strtod(args[1],NULL);
@@ -227,6 +266,7 @@ int set_zero_point(int argc, char** args){
 int move_to_y(int argc, char** args){
     if (argc != 5) {
         shell.println("bad argument count");
+        shell.println(help_map["move_to_y"]);
         return -1;
     }
     int _id=strtod(args[1],NULL);
@@ -252,6 +292,7 @@ int move_to_y(int argc, char** args){
 int move_y(int argc, char** args){
     if (argc != 5) {
         shell.println("bad argument count");
+        shell.println(help_map["move_y"]);
         return -1;
     }
     int _id=strtod(args[1],NULL);
@@ -278,6 +319,7 @@ int move_y(int argc, char** args){
 int move_to_x(int argc, char** args){
     if (argc != 5) {
         shell.println("bad argument count");
+        shell.println(help_map["move_to_x"]);
         return -1;
     }
     int _id=strtod(args[1],NULL);
@@ -302,6 +344,7 @@ int move_to_x(int argc, char** args){
 int move_x(int argc, char** args){
     if (argc != 5) {
         shell.println("bad argument count");
+        shell.println(help_map["move_x"]);
         return -1;
     }
     int _id=strtod(args[1],NULL);
@@ -326,6 +369,7 @@ int move_x(int argc, char** args){
 int move_to_z(int argc, char** args){
     if (argc != 5) {
         shell.println("bad argument count");
+        shell.println(help_map["move_to_z"]);
         return -1;
     }
     int _id=strtod(args[1],NULL);
@@ -350,6 +394,7 @@ int move_to_z(int argc, char** args){
 int move_z(int argc, char** args){
     if (argc != 5) {
         shell.println("bad argument count");
+        shell.println(help_map["move_z"]);
         return -1;
     }
     int _id=strtod(args[1],NULL);
@@ -374,6 +419,7 @@ int move_z(int argc, char** args){
 int grap(int argc, char** args){
     if (argc != 3) {
         shell.println("bad argument count");
+        shell.println(help_map["grap"]);
         return -1;
     }
     int _id=strtod(args[1],NULL);
@@ -392,6 +438,7 @@ int grap(int argc, char** args){
 int enable(int argc, char** args){
     if (argc != 4) {
         shell.println("bad argument count");
+        shell.println(help_map["enable"]);
         return -1;
     }
     int _id=strtod(args[1],NULL);
