@@ -226,7 +226,7 @@ int SimpleSerialShell::execute(void)
     if (!commandName)
     {
         // empty line; no arguments found.
-        println(F("OK"));
+        println(F("enter help to show all commands"));
         resetBuffer();
         return EXIT_SUCCESS;
     }
