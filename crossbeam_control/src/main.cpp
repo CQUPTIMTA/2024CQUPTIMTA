@@ -143,8 +143,8 @@ void setup() {
     Serial.begin(115200);
     CROSSBEAM::motor_ser.begin(115200, SERIAL_8N1, 10, 9);
     setup_pins();
-    // attachInterrupt(digitalPinToInterrupt(LEFT_SW_PIN), left_sw_interrupt, CHANGE);
-    // attachInterrupt(digitalPinToInterrupt(RIGHT_SW_PIN), right_sw_interrupt, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(LEFT_SW_PIN), left_sw_interrupt, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(RIGHT_SW_PIN), right_sw_interrupt, CHANGE);
     delay(1000);
 
 
