@@ -86,7 +86,9 @@ namespace GrapUnit{
 
 //获取当前X轴电机所处位置
   float get_now_location_x() {
-    int64_t m1=X_motor.read_current_location()+DATA.X_ZERO_POINT*65535.0/(20*2.0*PI);
+    int64_t m1=X_motor.read_current_location()/*DATA.X_ZERO_POINT*65535.0/(20*2.0*PI)*/;
+    // Serial.print("m1:");
+    // Serial.println(m1);
     return double(m1)*40.0*PI/65535.0;
   }
 //等待X轴电机移动到指定位置
@@ -262,7 +264,7 @@ namespace EspnowCallback{
   }
   //机械爪的开合
   void grap(data_package redata){
-    float flag = *(float*)redata.data;
+    bool flag = *(bool*)redata.data;
     if(flag==1){
       GrapUnit::get_open();
     }
@@ -353,14 +355,15 @@ void setup() {
   EspnowCallback::add_callbacks();
   esp_now_setup();
 
-  ID=GrapUnit::DATA.ID;
+  ID=GrapUnit::DATA.ID; 
+  
 
   /*一些任务*/
   //xTaskCreatePinnedToCore(GrapUnit::update_sensor,"update_sensor",2048,NULL,2,NULL,1);
   //指示灯更新任务
   xTaskCreatePinnedToCore(GrapUnit::led_update,"led_update",2048,NULL,3,NULL,0);
   //舵机高温保护
-  xTaskCreatePinnedToCore(GrapUnit::Servo_temperature_read,"Servo_protect",2048,NULL,1,NULL,1);
+  //xTaskCreatePinnedToCore(GrapUnit::Servo_temperature_read,"Servo_protect",2048,NULL,1,NULL,1);
 
 }
 
@@ -371,6 +374,10 @@ void loop() {
     digitalWrite(7,0);
     delay(300);
   }
-  delay(2000);
+  // GrapUnit::get_close();
+  // delay(2000);
+  // GrapUnit::get_open();
+  // Serial.println(GrapUnit::grap_servo.SERVO_POS_READ());
+  // delay(2000);
 }
 
