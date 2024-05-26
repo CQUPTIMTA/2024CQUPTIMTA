@@ -112,6 +112,10 @@ namespace EspnowCallback {
         DATA.write();
         esp_now_send_package(package_type_response,redata.id,"set_zero_point",nullptr,0,receive_MACAddress);
     }
+    void get_voltage(data_package redata){
+        float voltage=ESP.getVcc()/1000.0;
+        esp_now_send_package(package_type_response,redata.id,"get_voltage",(uint8_t*)&voltage,sizeof(voltage),receive_MACAddress);
+    }
     void add_callbacks(){
         callback_map["online_test"]=online_test;
         callback_map["rezero"]=rezero;
@@ -120,6 +124,8 @@ namespace EspnowCallback {
         callback_map["enable"]=enable;
         callback_map["set_zero_point"]=set_zero_point;
         callback_map["get_y"]=get_y;
+        callback_map["get_voltage"]=get_voltage;
+
     }
 }
 
@@ -137,8 +143,8 @@ void setup() {
     Serial.begin(115200);
     CROSSBEAM::motor_ser.begin(115200, SERIAL_8N1, 10, 9);
     setup_pins();
-    // attachInterrupt(digitalPinToInterrupt(LEFT_SW_PIN), left_sw_interrupt, CHANGE);
-    // attachInterrupt(digitalPinToInterrupt(RIGHT_SW_PIN), right_sw_interrupt, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(LEFT_SW_PIN), left_sw_interrupt, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(RIGHT_SW_PIN), right_sw_interrupt, CHANGE);
     delay(1000);
 
 
