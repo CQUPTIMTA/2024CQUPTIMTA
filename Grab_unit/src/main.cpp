@@ -12,7 +12,7 @@ int ID=0;
 // 控制相关函数
 namespace GrapUnit{
   // //高度超声波
-  SENSOR high_sensor(37,38,false,10);
+  SENSOR high_sensor(37,38,false,3);
   // // X轴和Z轴超声波
   SENSOR Y_sensor(14,21,false,10);     
   SENSOR X_sensor(47,48,false,10);
@@ -107,8 +107,10 @@ namespace GrapUnit{
   }
   /* 获取Z轴当前高度         */
   float get_location_z(){
-    
-    return high_sensor.get_distance_mm(true);
+    for(int i=0;i<3;i++){
+      high_sensor.update();
+    }
+    return high_sensor.get_distance_mm(false);
   }
     void wait_to_z(float z){
     while(abs(z-get_location_z())>10){
