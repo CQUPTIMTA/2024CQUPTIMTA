@@ -146,7 +146,7 @@ namespace GrapUnit{
       if(X_sensor.get_distance_mm(false)!=0){
         digitalWrite(5,1);
       }else{
-        digitalWrite(5,0);
+        digitalWrite(5,0);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
       }
       if(Y_sensor.get_distance_mm(false)!=0){
         digitalWrite(4,1);
@@ -171,7 +171,7 @@ namespace GrapUnit{
       delay(2000);
     }
   }
-  //夹爪过温保护
+  //夹爪过温保护（每四秒检查一次）
   void Servo_temperature_read(void *p){
     while(1){
       //如果夹爪舵机温度过高
