@@ -31,11 +31,12 @@ namespace GrapUnit{
   HEServo Y_servo(&servo_ser,3);
   
   //机械爪的开合
-  void get_close(){
-      grap_servo.SERVO_MOVE_TIME_WRITE(240*DATA.grap_servo_close/1000,0);//745
-  }
-  void get_open(){
-      grap_servo.SERVO_MOVE_TIME_WRITE(240*DATA.grap_servo_open/1000,0);//880
+  void grap(bool state){
+    if(state){
+        grap_servo.SERVO_MOVE_TIME_WRITE(240*DATA.grap_servo_open/1000,0);
+    }else{
+        grap_servo.SERVO_MOVE_TIME_WRITE(240*DATA.grap_servo_close/1000,0);
+    }
   }
   //将X Y轴的测量超声波收起来
   void get_XY_back(){
@@ -249,6 +250,8 @@ namespace EspnowCallback{
       GrapUnit::X_motor.enable(state);
     }else if(name=='Z'){
       GrapUnit::Z_motor.enable(state);
+    }else if(name=='G'){
+      GrapUnit::grap_servo.SERVO_LOAD_OR_UNLOAD_WRITE(state);
     }
     esp_now_send_package(package_type_response,redata.id,"enable",nullptr,0,receive_MACAddress);
   }
@@ -264,13 +267,8 @@ namespace EspnowCallback{
   }
   //机械爪的开合
   void grap(data_package redata){
-    bool flag = *(bool*)redata.data;
-    if(flag==1){
-      GrapUnit::get_open();
-    }
-    else{
-      GrapUnit::get_close();
-    }
+    bool flag = redata.data[0];
+    GrapUnit::grap(flag);
     esp_now_send_package(package_type_response,redata.id,"grap",nullptr,0,receive_MACAddress);
   }
   //获取X Y Z轴的超声波测得的距离
