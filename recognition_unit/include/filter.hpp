@@ -1,5 +1,6 @@
 #ifndef FILTER_HPP
 #define FILTER_HPP
+#include <queue>
 class filter{
 public:
     filter(int size){
@@ -53,7 +54,7 @@ public:
     };
 private:
     int size;
-    float* o_data;
-    float f_data;
+    float* o_data;//原始数据
+    float f_data;//滤波后输出的数据
 };
 #endif // FILTER

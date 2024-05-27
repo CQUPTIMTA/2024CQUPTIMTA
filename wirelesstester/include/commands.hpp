@@ -161,23 +161,38 @@ int get_z(int argc, char** args){
 
 //获取超声波传感器距离
 int get_sensor(int argc, char** args){
-    if (argc != 2) {
+    if (argc != 3) {
         shell.println("bad argument count");
         shell.println(help_map["getSensor"]);
         return -1;
     }
-    int pra=strtod(args[1],NULL);
-    if(pra>20||pra<0){
+    int _id=strtod(args[1],NULL);
+    char pra=args[2][0];
+    if(_id>20||_id<0){
         shell.println(F("data error"));
         return -1;
     }
-
-    esp_now_send_package(package_type_request,pra,"get_sensor_distance",nullptr,0);
-    //等待响应
-    if(wait_package("get_sensor_distance")) return 0;
-    //解析响应
-    shell.print(F("distance:"));
-    shell.println(*(float*)receive_datas["get_sensor_distance"].data);
+    if(pra=='S'){
+        esp_now_send_package(package_type_request,_id,"get_sensor_distance",nullptr,0);
+        //等待响应
+        if(wait_package("get_sensor_distance")) return 0;
+        //解析响应
+        shell.print(F("distance:"));
+        float dis1=*(float*)receive_datas["get_sensor_distance"].data;
+        float dis2=*(float*)receive_datas["get_sensor_distance"].data+4;
+        shell.print(dis1);
+        shell.print(F("mm"));
+        shell.print(F("  "));
+        shell.print(dis2);
+        shell.println(F("mm"));
+    }else{
+        esp_now_send_package(package_type_request,_id,"get_sensor_distance",nullptr,0);
+        //等待响应
+        if(wait_package("get_sensor_distance")) return 0;
+        //解析响应
+        shell.print(F("distance:"));
+        shell.println(*(float*)receive_datas["get_sensor_distance"].data);
+    }
     //缓存map清除响应包
     receive_datas.erase("get_sensor_distance");
     return 0;
