@@ -10,8 +10,9 @@
 #include <esp_wifi.h>
 #include <esp_now.h>
 #include <map>
-
-
+#define MAX_RETRY 5
+std::map<int,uint8_t*> receive_MACs;//接收MAC
+esp_now_peer_info_t peerInfo;
 //包类型
 enum package_type {
     package_type_normal = 0,
@@ -110,6 +111,15 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
   data_package re_data;
   //检查是否是数据包
   if(!re_data.add_package(data,len)) return ;
+
+
+  // 如果该ID没有在配对MACmap中则添加配对信息,0是广播ID
+  if(re_data.id!=0 && (receive_MACs.find(re_data.id)==receive_MACs.end())){
+    receive_MACs[re_data.id]=new uint8_t[6]{mac[0],mac[1],mac[2],mac[3],mac[4],mac[5]};
+    memcpy(peerInfo.peer_addr, mac, 6);
+    esp_now_add_peer(&peerInfo);
+  }
+
   //存入成功执行的动作
   if(String(re_data.name,re_data.name_len)=="action_complete"){
     susscess_actions[re_data.id]=String((char*)re_data.data);
@@ -122,8 +132,7 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
 
 
 
-//peerInfo 必须是全局变量否则espnow不可用
-esp_now_peer_info_t peerInfo;
+
 uint8_t receive_MACAddress[] ={0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 //ESP-NOW初始化
 void esp_now_setup() {
@@ -167,8 +176,20 @@ void esp_now_send_package(package_type type,int _id,String name,uint8_t* data,in
   uint8_t send_data_array[send_data.name_len+send_data.data_len+7];
   //结构体到数组
   send_data.get_data(send_data_array);
+  
+  //检查是否配对,如果配对则发送到对应的MAC，没有就发送到广播mac
+  if(receive_MAC==receive_MACAddress){
+    if(auto i=receive_MACs.find(_id)!=receive_MACs.end()){
+      receive_MAC=receive_MACs[_id];
+      Serial.println("find mac");
+    }
+  }
   //发送
-  esp_err_t err = esp_now_send(receive_MAC,send_data_array,send_data.get_len());
+  for(int i=0;i<MAX_RETRY;i++){
+    auto err = esp_now_send(receive_MAC,send_data_array,send_data.get_len());
+    if (err == ESP_OK)  break;
+    delay(10);
+  }
 }
 
 #endif

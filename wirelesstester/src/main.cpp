@@ -28,6 +28,11 @@ void add_help(){
   help_map["set_zero_point"]=F("set_zero_point <id> <point>");
   help_map["grap"]=F("grap <id> <state>");
   help_map["enable"]=F("enable <id> <name>='X'||'Y'||'Z'  <state>");
+  help_map["laser"]=F("laser <id> <state>");
+  help_map["is_moveing"]=F("is_moveing <id> <name>='X'||'Y'||'Z'");
+  help_map["set_now"]=F("set_now <id> <point>");
+  help_map["read_servo_angle"]=F("read_servo_angle <id> <name>='X'||'Y'||'Z'");
+  help_map["set_servo_angle"]=F("set_servo_angle <id> <state> <name>='X'||'Y'||'Z' <angle>");
 }
 
 int help(int argc = 0, char** argv = NULL) {
@@ -76,8 +81,14 @@ void setup() {
   shell.addCommand(F("grap"), grap);
   //_Id name state
   shell.addCommand(F("enable"), enable);
-
+  //_Id state
   shell.addCommand(F("laser"), laser);
+  
+  shell.addCommand(F("is_moveing"), is_moveing);
+  shell.addCommand(F("set_now"), set_now);
+  shell.addCommand(F("read_servo_angle"), read_servo_angle);
+  shell.addCommand(F("set_servo_angle"), set_servo_angle);
+
   esp_now_setup();
 }
 

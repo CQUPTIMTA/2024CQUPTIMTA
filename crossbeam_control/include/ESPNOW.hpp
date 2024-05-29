@@ -10,11 +10,13 @@
 #include <esp_wifi.h>
 #include <esp_now.h>
 #include <map>
+#define MAX_RETRY 5 //最大重试次数
 extern int ID;
 
 int last_time_receive_time=0;
 
 uint8_t receive_MACAddress[] ={0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
+esp_now_peer_info_t peerInfo;
 
 enum package_type {
     package_type_normal = 0,
@@ -138,8 +140,18 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
   
   if(!re_data.add_package(data,len)) return ;
   if(re_data.id!=ID) return;
-  
-  // //如果有对应的回调函数，则执行
+
+  //如果MAC地址不一致，则更新
+  if(memcmp(mac, receive_MACAddress, 6) != 0){
+    memcpy(receive_MACAddress,mac,6);
+    //如果从未配对，则添加配对
+    if(esp_now_get_peer(mac, &peerInfo) == ESP_ERR_ESPNOW_NOT_FOUND){
+      memcpy(peerInfo.peer_addr, receive_MACAddress, 6);
+      esp_now_add_peer(&peerInfo);
+    }
+
+  };
+  //如果有对应的回调函数，则执行
   xTaskCreate(package_response, "package_response_task", 4096,&re_data, 1, NULL);
   last_time_receive_time=millis();
 }
@@ -163,12 +175,13 @@ void esp_now_send_package(package_type type,int _id,String name,uint8_t* data,in
   //结构体到数组
   send_data.get_data(send_data_array);
   //发送
-  esp_err_t err = esp_now_send(receive_MAC,send_data_array,send_data.get_len());
+  for (int i = 0; i < MAX_RETRY; i++){
+    auto send_status = esp_now_send(receive_MAC,send_data_array,send_data.get_len());
+    if(send_status == ESP_OK) break;
+  }
 }
 
 
-//peerInfo 必须是全局变量否则espnow不可用
-esp_now_peer_info_t peerInfo;
 
 
 

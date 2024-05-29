@@ -91,8 +91,8 @@ class ESP32FLASHEEPROM{
     float X_ZERO_POINT=0;// 碰到归零点的X坐标，单位mm
     float X_PLUSE_MM=0;//X轴移动一毫米的脉冲数
     float Z_PLUSE_MM=0;//Z轴移动一毫米的脉冲数
-    float grap_servo_open=0;//夹爪开
-    float grap_servo_close=0;//夹爪关
+    float grap_servo_open=0;//夹爪开角度
+    float grap_servo_close=0;//夹爪关角度
     float senser_x_up=0;//超声波下降对应X的舵机位置
     float senser_x_down=0;//超声波上升对应X的舵机位置
     float senser_y_up=0;//超声波下降对应y的舵机位置

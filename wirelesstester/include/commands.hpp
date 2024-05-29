@@ -46,7 +46,7 @@ int online_test(int argc, char** args){
 
     if (argc==2){
         int pra=strtod(args[1],NULL);
-        esp_now_send_package(package_type_request,pra,"online_test",nullptr,0,receive_MACAddress);
+        esp_now_send_package(package_type_request,pra,"online_test",nullptr,0);
         //等待响应
         if(wait_package("online_test")) return 0;
         //解析响应
@@ -59,7 +59,7 @@ int online_test(int argc, char** args){
         }
     }else if(argc==3){
         auto test_func=[&](int id){
-            esp_now_send_package(package_type_request,id,"online_test",nullptr,0,receive_MACAddress);
+            esp_now_send_package(package_type_request,id,"online_test",nullptr,0);
             //等待响应
             if(wait_package("online_test",1000,false)){
                 shell.print(F("ID:"));
@@ -487,4 +487,90 @@ int laser(int argc, char** args){
     shell.println(F("laser success"));
     return 0;
 }
+
+int set_now(int argc, char** args){
+    if (argc != 3) {
+        shell.println("bad argument count");
+        shell.println(help_map["set_now"]);
+        return -1;
+    }
+    int _id=strtod(args[1],NULL);
+    float pra=strtod(args[2],NULL);
+    if(_id>20||_id<0){
+        shell.println(F("data error"));
+        return -1;
+    }
+    esp_now_send_package(package_type_request,_id,"set_now_location",(uint8_t*)&pra,4);
+    if(wait_package("set_now_location")) return 0;
+    receive_datas.erase("set_now");
+    shell.println(F("set now success"));
+    return 0;
+}
+int is_moveing(int argc, char** args){
+    if (argc != 3) {
+        shell.println("bad argument count");
+        shell.println(help_map["is_moveing"]);
+        return -1;
+    }
+    int _id=strtod(args[1],NULL);
+    char axis=args[2][0];
+    if(_id>20||_id<0){
+        shell.println(F("data error"));
+        return -1;
+    }
+    esp_now_send_package(package_type_request,_id,"is_moveing",(uint8_t*)&axis,1);
+    if(wait_package("is_moveing")) return 0;
+    bool state=*(bool*)receive_datas["is_moveing"].data;
+    receive_datas.erase("is_moveing");
+    if(state){
+        shell.println(F("moveing"));
+    }else{
+        shell.println(F("stop"));
+    }
+    return 0;
+}
+
+int read_servo_angle(int argc, char** args){
+    if (argc != 3) {
+        shell.println("bad argument count");
+        shell.println(help_map["read_servo_angle"]);
+        return -1;
+    }
+    int _id=strtod(args[1],NULL);
+    char axis=args[2][0];
+    if(_id>20||_id<0){
+        shell.println(F("data error"));
+        return -1;
+    }
+    esp_now_send_package(package_type_request,_id,"read_servo_angle",(uint8_t*)&axis,1);
+    if(wait_package("read_servo_angle")) return 0;
+    float angle=*(float*)receive_datas["read_servo_angle"].data;
+    receive_datas.erase("read_servo_angle");
+    shell.println(angle);
+    return 0;
+}
+
+int set_servo_angle(int argc, char** args){
+    if (argc != 5) {
+        shell.println("bad argument count");
+        shell.println(help_map["set_servo_angle"]);
+        return -1;
+    }
+    int _id=strtod(args[1],NULL);
+    char axis=args[2][0];
+    bool state=strtod(args[3],NULL);
+    float angle=strtod(args[4],NULL);
+    if(_id>20||_id<0){
+        shell.println(F("data error"));
+        return -1;
+    }
+    uint8_t data[6]{axis,state,0,0,0,0};
+    memcpy(data+2,&angle,4);
+    esp_now_send_package(package_type_request,_id,"set_servo_angle",(uint8_t*)&data,6);
+    if(wait_package("set_servo_angle")) return 0;
+    receive_datas.erase("set_servo_angle");
+    shell.println(F("set servo angle success"));
+    return 0;
+}
+
 #endif

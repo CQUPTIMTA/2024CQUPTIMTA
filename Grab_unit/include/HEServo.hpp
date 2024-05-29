@@ -155,6 +155,10 @@ public:
         this->read(r_data,6);
         return (r_data[4]<<8)+r_data[3];
     }
+    float SERVO_ANGLE_READ(){
+        //读取舵机当前角度
+        return 360.0*SERVO_POS_READ()/1500;
+    }
     void SERVO_OR_MOTOR_MODE_WRITE(bool motor_mode=false,int16_t motor_speed=0){
         if(abs(motor_speed)>1000){
             motor_speed=1000*motor_speed/abs(motor_speed);

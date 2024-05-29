@@ -129,11 +129,11 @@ void package_response(void* p){
 
 //接收数据时的回调函数，收到数据时自动运行
 void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
-  
+  digitalWrite(1,1);
   if(!re_data.add_package(data,len)) return ;
   if(re_data.id!=ID) return;
   
-  // //如果有对应的回调函数，则执行
+  //如果有对应的回调函数，则执行
   xTaskCreate(package_response, "package_response_task", 4096,&re_data, 1, NULL);
 }
 
@@ -175,12 +175,16 @@ void esp_now_setup() {
   }
 
   peerInfo.ifidx = WIFI_IF_STA;
+  peerInfo.channel = 0;
   memcpy(peerInfo.peer_addr, receive_MACAddress, 6);
 
   if (esp_now_add_peer(&peerInfo) != ESP_OK){
       Serial.println("Failed to add peer");
       return;
   }
-  esp_now_register_recv_cb(OnDataRecv);
+  auto err=esp_now_register_recv_cb(OnDataRecv);
+  if(err!=ESP_OK){
+    Serial.println("esp_now_register_recv_cb failed");
+  }
 } 
 #endif

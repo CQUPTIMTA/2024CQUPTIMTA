@@ -33,9 +33,9 @@ namespace GrapUnit{
   //机械爪的开合
   void grap(bool state){
     if(state){
-        grap_servo.SERVO_MOVE_TIME_WRITE(240*DATA.grap_servo_open/1000,0);
+        grap_servo.SERVO_MOVE_TIME_WRITE(DATA.grap_servo_open,0);
     }else{
-        grap_servo.SERVO_MOVE_TIME_WRITE(240*DATA.grap_servo_close/1000,0);
+        grap_servo.SERVO_MOVE_TIME_WRITE(DATA.grap_servo_close,0);
     }
   }
   //将X Y轴的测量超声波收起来
@@ -129,6 +129,18 @@ namespace GrapUnit{
     if(need_wait){
         wait_to_z(z);
     }
+  }
+  void is_moveing(char axis){
+    if(axis=='X'){
+      auto taget=X_motor.read_target_location();
+      auto now=X_motor.read_current_location();
+    else if (axis=='Z'){
+      auto taget=Z_motor.read_target_location();
+      auto now=Z_motor.read_current_location();
+    }
+    float delta=abs(taget-now);
+    return delta>10000?true:false;
+    
   }
   //实时超声波距离更新
   void update_sensor(void* p){
@@ -297,6 +309,49 @@ namespace EspnowCallback{
     GrapUnit::DATA.write();
     esp_now_send_package(package_type_response,redata.id,"set_now_location",nullptr,0,receive_MACAddress);
   }
+  //是否在运动
+  void is_moving(data_package redata){
+    char axis=redata.data[0];
+    bool state=GrapUnit::is_moving(axis);
+    esp_now_send_package(package_type_response,redata.id,"is_moving",(uint8_t*)&state,1,receive_MACAddress);
+  }
+  //读取舵机角度
+  void read_servo_angle(data_package redata){
+    char axis=redata.data[0];4
+    float angle=0;
+    if(axis=='G'){
+     angle=GrapUnit::grap_servo.SERVO_ANGLE_READ();
+    }else if(axis=='X'){
+      angle=GrapUnit::X_servo.SERVO_ANGLE_READ();
+    }else if(axis=='Y'){
+      angle=GrapUnit::Z_servo.SERVO_ANGLE_READ();
+    }
+    esp_now_send_package(package_type_response,redata.id,"read_servo_angle",(uint8_t*)&angle,4,receive_MACAddress);
+  }
+  //设置舵机角度
+  void set_servo_angle(data_package redata){
+    char axis=redata.data[0];
+    bool state=*(bool*)(redata.data+1);
+    float set_angle=*(float*)(redata.data+2);
+    if(axis=='G'){
+      if(state)
+        GrapUnit::DATA.grap_servo_open=set_angle;
+      else
+        GrapUnit::DATA.grap_servo_close=set_angle;
+    }else if(axis=='X'){
+      if(state)
+        GrapUnit::DATA.senser_x_up=set_angle;
+      else
+        GrapUnit::DATA.senser_x_down=set_angle;
+    }else if(axis=='Y'){
+      if(state)
+        GrapUnit::DATA.senser_y_up=set_angle;
+      else
+        GrapUnit::DATA.senser_y_down=set_angle;
+    }
+    GrapUnit::DATA.write();
+    esp_now_send_package(package_type_response,redata.id,"set_servo_angle",nullptr,0,receive_MACAddress);
+  }
   //添加回调函数到map
   void add_callbacks(){
     callback_map["online_test"]=online_test;
@@ -314,6 +369,10 @@ namespace EspnowCallback{
     callback_map["set_now_location"]=set_now_location;
     callback_map["get_x"]=get_x;
     callback_map["get_z"]=get_z;
+    callback_map["is_moving"]=is_moving;
+    callback_map["read_servo_angle"]=read_servo_angle;
+    callback_map["set_servo_angle"]=set_servo_angle;
+    
   }
 }
 
