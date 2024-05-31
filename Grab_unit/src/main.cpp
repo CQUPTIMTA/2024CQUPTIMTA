@@ -3,7 +3,6 @@
 #include "SENSOR.hpp"
 #include "EMMC42V5.hpp"
 #include "HEServo.hpp"
-#include "PID.hpp"
 #include "ESPNOW.hpp"
 #define laser_pin 42
 
@@ -130,17 +129,19 @@ namespace GrapUnit{
         wait_to_z(z);
     }
   }
-  void is_moveing(char axis){
+  bool is_moveing(char axis){
+    int64_t taget=0;
+    int64_t now=0;
     if(axis=='X'){
-      auto taget=X_motor.read_target_location();
-      auto now=X_motor.read_current_location();
+      taget=X_motor.read_target_location();
+      now=X_motor.read_current_location();
+    }
     else if (axis=='Z'){
-      auto taget=Z_motor.read_target_location();
-      auto now=Z_motor.read_current_location();
+      taget=Z_motor.read_target_location();
+      now=Z_motor.read_current_location();
     }
     float delta=abs(taget-now);
     return delta>10000?true:false;
-    
   }
   //实时超声波距离更新
   void update_sensor(void* p){
@@ -312,19 +313,19 @@ namespace EspnowCallback{
   //是否在运动
   void is_moving(data_package redata){
     char axis=redata.data[0];
-    bool state=GrapUnit::is_moving(axis);
+    bool state=GrapUnit::is_moveing(axis);
     esp_now_send_package(package_type_response,redata.id,"is_moving",(uint8_t*)&state,1,receive_MACAddress);
   }
   //读取舵机角度
   void read_servo_angle(data_package redata){
-    char axis=redata.data[0];4
+    char axis=redata.data[0];
     float angle=0;
     if(axis=='G'){
      angle=GrapUnit::grap_servo.SERVO_ANGLE_READ();
     }else if(axis=='X'){
       angle=GrapUnit::X_servo.SERVO_ANGLE_READ();
     }else if(axis=='Y'){
-      angle=GrapUnit::Z_servo.SERVO_ANGLE_READ();
+      angle=GrapUnit::Y_servo.SERVO_ANGLE_READ();
     }
     esp_now_send_package(package_type_response,redata.id,"read_servo_angle",(uint8_t*)&angle,4,receive_MACAddress);
   }
