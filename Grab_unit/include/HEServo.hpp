@@ -185,25 +185,21 @@ public:
         this->read(r_data,5);
         return r_data[3];
     }
-private:
+protected:
 
     //发送数据
-    void send(uint8_t *data){
+    virtual void send(uint8_t *data){
         //写入固定包头
         this->serial->write(0x55);
         this->serial->write(0x55);
         //写入数据
         for (int i = 0; i < data[1]+1; i++){
             this->serial->write(data[i]);
-
-            // Serial.print(data[i]);
-            // Serial.print(" ");
         }
-        //Serial.print("\n");
         delay(1);
     };
     //读取数据
-    void read(uint8_t *data,uint8_t len){
+    virtual void read(uint8_t *data,uint8_t len){
         delay(1);   
         for (int i = 0; i < MAX_TIME; i++){
             if (this->serial->available()){
@@ -216,8 +212,6 @@ private:
                 }
             }
         }
-         
-
     }
     //计算校验码
     void add_checksum(uint8_t *data){

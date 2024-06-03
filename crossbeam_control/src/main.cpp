@@ -127,6 +127,11 @@ namespace EspnowCallback {
         bool is_moving=CROSSBEAM::is_moving();
         esp_now_send_package(package_type_response,redata.id,"is_moving",(uint8_t*)&is_moving,sizeof(is_moving),receive_MACAddress);
     }
+    void set_now_location_y(data_package redata){
+        float y=*(float*)redata.data;
+        float now=CROSSBEAM::get_now_location_y();
+        
+    }
     void add_callbacks(){
         callback_map["online_test"]=online_test;
         callback_map["rezero"]=rezero;
@@ -134,6 +139,7 @@ namespace EspnowCallback {
         callback_map["move_y"]=move_y;
         callback_map["enable"]=enable;
         callback_map["set_zero_point"]=set_zero_point;
+
         callback_map["get_y"]=get_y;
         callback_map["get_voltage"]=get_voltage;
         callback_map["is_moving"]=is_moving;
@@ -144,8 +150,7 @@ namespace EspnowCallback {
 void setup() {
     DATA.setup();
     DATA.read();
-    // DATA.close();
-    // DATA.ID=8;
+    // DATA.ID=7;
     // DATA.write();
     ID=DATA.ID;
 
@@ -166,5 +171,12 @@ void setup() {
 void loop() {
     delay(1000);
     Serial.println(ID);
+    for (int i = 0; i < DATA.ID; i++){
+        digitalWrite(17,1);
+        delay(300);
+        digitalWrite(17,0);
+        delay(300);
+    }
+    
 }
 

@@ -405,7 +405,8 @@ void setup() {
   //从NVS中读取数据,实现代码的复用
   GrapUnit::DATA.setup();
   GrapUnit::DATA.read();
-
+  // GrapUnit::DATA.ID=4;
+  // GrapUnit::DATA.write();
   //初始化引脚
   PINSetup();
 
@@ -433,7 +434,7 @@ void loop() {
     delay(300);
   }
   // GrapUnit::get_close();
-  // delay(2000);
+  delay(1000);
   // GrapUnit::get_open();
   // Serial.println(GrapUnit::grap_servo.SERVO_POS_READ());
   // delay(2000);

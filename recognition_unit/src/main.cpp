@@ -14,8 +14,8 @@ int ID=0;
 void get_sensor_distance(data_package Rdata){
     char name =Rdata.data[0];
     if(name=='S'){
-        float Front = frontSensor.get_distance_mm();
-        float Back = backSensor.get_distance_mm();
+        float Front = frontSensor.get_distance_mm(false);
+        float Back = backSensor.get_distance_mm(false);
         uint8_t data[8];
         memcpy(data, &Front, sizeof(Front));
         memcpy(data+4, &Back, sizeof(Back));
@@ -24,8 +24,8 @@ void get_sensor_distance(data_package Rdata){
 }
 
 void get_voltage(data_package Rdata){
-    float voltage = analogReadMilliVolts(4)/1000.0;
-    esp_now_send_package(package_type_response, ID, "get_sensor_distance",(uint8_t *)&voltage,4);
+    float voltage = 2*analogReadMilliVolts(4)/1000.0;
+    esp_now_send_package(package_type_response, ID, "get_voltage",(uint8_t *)&voltage,4);
 }
 
 void online_test(data_package redata){
@@ -36,6 +36,8 @@ void setup() {
     DATA.setup();
     DATA.read();
     ID=DATA.ID;
+    // DATA.ID=11;
+    // DATA.write();
     Serial.begin(115200);
     frontSensor.setup();
     backSensor.setup();
@@ -45,6 +47,7 @@ void setup() {
     callback_map["get_voltage"]=get_voltage;
     callback_map["online_test"]=online_test;
     esp_now_setup();
+    
 
 }
 
@@ -59,10 +62,10 @@ void loop() {
     Serial.print(frontSensor.get_distance_mm());
     Serial.print(" ");
     Serial.println(backSensor.get_distance_mm());
-    // Serial.println(analogReadMilliVolts(4));
+    Serial.println(2*analogReadMilliVolts(4));
     // Serial.println(ID);
     // digitalWrite(1,1);
     // delay(300);
     // digitalWrite(1,0);
-    delay(1000);
+    delay(200);
 }
