@@ -1,0 +1,73 @@
+<!--
+ * @Description: 
+ * @Author: qingmeijiupiao
+ * @Date: 2024-06-03 09:35:25
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单网页</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-around;
+            background-color: #f8f9fa;
+            padding: 10px;
+        }
+        .navbar button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .content {
+            margin: 20px;
+        }
+        .message-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <button onclick="showPage('page1')">抓取</button>
+        <button onclick="showPage('page2')">横梁</button>
+        <button onclick="showPage('page3')">识别</button>
+    </div>
+
+    <div class="message-box" id="message-box">
+        <p>消息框：这里显示从后端发送的消息。</p>
+    </div>
+
+    <script>
+        function showPage(pagename) {
+   
+        }
+
+        // 显示默认页面
+        showPage('page1');
+
+        // 模拟从后端接收消息
+        function receiveMessage(message) {
+            const messageBox = document.getElementById('message-box');
+            messageBox.innerHTML = `<p>消息框：${message}</p>`;
+        }
+
+        // 模拟接收消息
+        setTimeout(() => {
+            receiveMessage('这是来自后端的第一条消息。');
+        }, 2000);
+
+        setTimeout(() => {
+            receiveMessage('这是来自后端的第二条消息。');
+        }, 5000);
+    </script>
+</body>
+</html>

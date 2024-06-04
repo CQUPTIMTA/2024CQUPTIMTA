@@ -1,6 +1,11 @@
-#ifndef SENSOR_H
-#define SENSOR_H
-#include<Arduino.h>
+/*
+ * @Description: 
+ * @Author: qingmeijiupiao
+ * @Date: 2024-05-27 15:12:04
+ */
+#ifndef SENSOR_HPP
+#define SENSOR_HPP
+#include <Arduino.h>
 #include "filter.hPP"
 // 定义了一个名为SENSOR的类，实现超声波测距功能
 class SENSOR{
@@ -13,18 +18,20 @@ class SENSOR{
       this->data_size = filter_size;       
     }
   };
-  ~SENSOR(){};
+  ~SENSOR(){
+    delete ft;
+  };
   int data_size;
   // 引脚初始化
   void setup(){
-    pinMode(trigpin, OUTPUT); // 设置触发引脚为输出模式
+    pinMode(trigpin, OUTPUT_OPEN_DRAIN); // 设置触发引脚为输出模式
     digitalWrite(trigpin, LOW);
     pinMode(echopin, INPUT); // 设置回响引脚为输入模式
   };
   // 更新距离
   void update(){
     digitalWrite(trigpin, HIGH); // 把信号引脚设为高电平，发出一个10微秒的触发信号
-    delayMicroseconds(10);  
+    delayMicroseconds(20);  
     digitalWrite(trigpin, LOW);  // 触发信号结束后，将信号引脚置为低电平
     this->distance = pulseIn(echopin, HIGH)*sound_speed*0.0005;
     if(this->ft!=NULL){
@@ -38,6 +45,7 @@ class SENSOR{
     }
     return this->distance;
   };
+  // set_sound_speed 函数设置声速
   void set_sound_speed(float sound_speed){
     if(sound_speed>300&&sound_speed<380){// 限制声速在合理范围
       this->sound_speed = sound_speed;
@@ -49,6 +57,6 @@ class SENSOR{
   float distance = 0.0;//测得距离,单位毫米
   int trigpin; // 定义trigpin为传感器触发引脚
   int echopin; // 定义echopin为传感器检测回波引脚
-  filter* ft ;
+  filter* ft ;//滤波器指针
 };
 #endif // SENSOR

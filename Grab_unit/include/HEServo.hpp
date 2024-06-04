@@ -155,6 +155,10 @@ public:
         this->read(r_data,6);
         return (r_data[4]<<8)+r_data[3];
     }
+    float SERVO_ANGLE_READ(){
+        //读取舵机当前角度
+        return 360.0*SERVO_POS_READ()/1500;
+    }
     void SERVO_OR_MOTOR_MODE_WRITE(bool motor_mode=false,int16_t motor_speed=0){
         if(abs(motor_speed)>1000){
             motor_speed=1000*motor_speed/abs(motor_speed);
@@ -181,25 +185,21 @@ public:
         this->read(r_data,5);
         return r_data[3];
     }
-private:
+protected:
 
     //发送数据
-    void send(uint8_t *data){
+    virtual void send(uint8_t *data){
         //写入固定包头
         this->serial->write(0x55);
         this->serial->write(0x55);
         //写入数据
         for (int i = 0; i < data[1]+1; i++){
             this->serial->write(data[i]);
-
-            // Serial.print(data[i]);
-            // Serial.print(" ");
         }
-        //Serial.print("\n");
         delay(1);
     };
     //读取数据
-    void read(uint8_t *data,uint8_t len){
+    virtual void read(uint8_t *data,uint8_t len){
         delay(1);   
         for (int i = 0; i < MAX_TIME; i++){
             if (this->serial->available()){
@@ -212,8 +212,6 @@ private:
                 }
             }
         }
-         
-
     }
     //计算校验码
     void add_checksum(uint8_t *data){

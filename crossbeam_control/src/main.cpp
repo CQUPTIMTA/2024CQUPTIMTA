@@ -55,6 +55,13 @@ namespace CROSSBEAM {
             wait_to_y(y);
         }
     }
+    //Y轴是否正在移动
+    bool is_moving() {
+        auto taget=left_motor.read_target_location();
+        auto real=left_motor.read_current_location();
+        float delata=2.0*GEARTEETH* PI*(taget-real)/65535;
+        return abs(delata)>20;
+    }
 
 }
 
@@ -113,8 +120,17 @@ namespace EspnowCallback {
         esp_now_send_package(package_type_response,redata.id,"set_zero_point",nullptr,0,receive_MACAddress);
     }
     void get_voltage(data_package redata){
-        float voltage=ESP.getVcc()/1000.0;
+        float voltage=CROSSBEAM::left_motor.read_Bus_voltage()/1000.0;
         esp_now_send_package(package_type_response,redata.id,"get_voltage",(uint8_t*)&voltage,sizeof(voltage),receive_MACAddress);
+    }
+    void is_moving(data_package redata){
+        bool is_moving=CROSSBEAM::is_moving();
+        esp_now_send_package(package_type_response,redata.id,"is_moving",(uint8_t*)&is_moving,sizeof(is_moving),receive_MACAddress);
+    }
+    void set_now_location_y(data_package redata){
+        float y=*(float*)redata.data;
+        float now=CROSSBEAM::get_now_location_y();
+        
     }
     void add_callbacks(){
         callback_map["online_test"]=online_test;
@@ -123,8 +139,10 @@ namespace EspnowCallback {
         callback_map["move_y"]=move_y;
         callback_map["enable"]=enable;
         callback_map["set_zero_point"]=set_zero_point;
+
         callback_map["get_y"]=get_y;
         callback_map["get_voltage"]=get_voltage;
+        callback_map["is_moving"]=is_moving;
 
     }
 }
@@ -132,10 +150,10 @@ namespace EspnowCallback {
 void setup() {
     DATA.setup();
     DATA.read();
-    DATA.close();
-    ID=DATA.ID;
     // DATA.ID=7;
     // DATA.write();
+    ID=DATA.ID;
+
 
 
     esp_now_setup();
@@ -153,5 +171,12 @@ void setup() {
 void loop() {
     delay(1000);
     Serial.println(ID);
+    for (int i = 0; i < DATA.ID; i++){
+        digitalWrite(17,1);
+        delay(300);
+        digitalWrite(17,0);
+        delay(300);
+    }
+    
 }
 
