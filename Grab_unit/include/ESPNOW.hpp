@@ -133,8 +133,8 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
   if(!re_data.add_package(data,len)) return ;
   if(re_data.id!=ID) return;
   
-  // //如果有对应的回调函数，则执行
-  xTaskCreate(package_response, "package_response_task", 4096,&re_data, 1, NULL);
+  //如果有对应的回调函数，则执行
+  xTaskCreatePinnedToCore(package_response, "package_response_task", 16384,&re_data, 1, NULL,1);
 }
 
 //通过espnow发送数据

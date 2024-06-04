@@ -182,13 +182,12 @@ namespace GrapUnit{
       //如果夹爪舵机温度过高
       if(grap_servo.SERVO_TEMP_READ()>70){
         //温度过高让夹爪舵机掉电
-      grap_servo.SERVO_LOAD_OR_UNLOAD_WRITE(0);
+        grap_servo.SERVO_LOAD_OR_UNLOAD_WRITE(0);
       }
       delay(4000);
     }
   }
 }
-
 //无线指令回调函数
 namespace EspnowCallback{
   //测试对应ID号的ESP32是否在线
@@ -359,9 +358,11 @@ void setup() {
   /*一些任务*/
   //xTaskCreatePinnedToCore(GrapUnit::update_sensor,"update_sensor",2048,NULL,2,NULL,1);
   //指示灯更新任务
-  xTaskCreatePinnedToCore(GrapUnit::led_update,"led_update",2048,NULL,3,NULL,0);
+  xTaskCreatePinnedToCore(GrapUnit::led_update,"led_update",2048,NULL,3,NULL,1);
   //舵机高温保护
   //xTaskCreatePinnedToCore(GrapUnit::Servo_temperature_read,"Servo_protect",2048,NULL,1,NULL,1);
+  delay(1000);
+  GrapUnit::grap_servo.SERVO_LOAD_OR_UNLOAD_WRITE(1);
 
 }
 
@@ -375,7 +376,11 @@ void loop() {
   // GrapUnit::get_close();
   // delay(2000);
   // GrapUnit::get_open();
-  // Serial.println(GrapUnit::grap_servo.SERVO_POS_READ());
+
+  // GrapUnit::grap(1);
   // delay(2000);
+  // GrapUnit::grap(0);
+  Serial.println(GrapUnit::grap_servo.SERVO_POS_READ());
+  delay(2000);
 }
 
