@@ -314,7 +314,7 @@ int move_y(int argc, char** args){
     float pra=strtod(args[2],NULL);
     float pra2=strtod(args[3],NULL);
     float pra3=strtod(args[4],NULL);
-    if(_id>20||_id<0){
+    if(_id<6||_id>8){
         shell.println(F("data error"));
         shell.println(_id);
         return -1;
