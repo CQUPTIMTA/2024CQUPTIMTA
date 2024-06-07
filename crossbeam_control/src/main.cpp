@@ -62,7 +62,16 @@ namespace CROSSBEAM {
         float delata=2.0*GEARTEETH* PI*(taget-real)/65535;
         return abs(delata)>20;
     }
-
+    void rezero(){
+        if(ID==7) return;
+        REZREO_parameter re{2,DATA.offset_dir,50,20000,1,800,50,0};
+        CROSSBEAM::left_motor.change_parameter(re);
+        re.direction=!DATA.offset_dir;
+        CROSSBEAM::right_motor.change_parameter(re);
+        CROSSBEAM::right_motor.re_zero(2,true);
+        CROSSBEAM::left_motor.re_zero(2,true);
+        left_motor.sync();
+    }
 }
 
 
@@ -71,7 +80,8 @@ namespace EspnowCallback {
         esp_now_send_package(package_type_response,redata.id,"online_test",redata.data,redata.data_len,receive_MACAddress);
     };
     void rezero(data_package redata){
-        return;
+        esp_now_send_package(package_type_response,redata.id,"rezero",nullptr,0,receive_MACAddress);
+        CROSSBEAM::rezero();
     }
     void move_to_y(data_package redata){
         float y=*(float*)redata.data;
