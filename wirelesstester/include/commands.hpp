@@ -173,7 +173,7 @@ int get_sensor(int argc, char** args){
         return -1;
     }
     if(pra=='S'){
-        esp_now_send_package(package_type_request,_id,"get_sensor_distance",nullptr,0);
+        esp_now_send_package(package_type_request,_id,"get_sensor_distance",(uint8_t*)(&pra),1);
         //等待响应
         if(wait_package("get_sensor_distance")) return 0;
         //解析响应
@@ -314,7 +314,7 @@ int move_y(int argc, char** args){
     float pra=strtod(args[2],NULL);
     float pra2=strtod(args[3],NULL);
     float pra3=strtod(args[4],NULL);
-    if(_id!=6){
+    if(_id>20||_id<0){
         shell.println(F("data error"));
         shell.println(_id);
         return -1;
