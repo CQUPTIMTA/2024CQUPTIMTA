@@ -105,6 +105,20 @@ namespace GrapUnit{
         wait_to_x(x);
     }
   }
+  void rezero_Z(){
+    REZREO_parameter pa;
+    pa.mode=2;
+    pa.direction=DATA.Zdirection>0?1:0;
+    pa.speed=100;
+    pa.timeout=10000;
+    pa.limit_speed=300;
+    pa.limit_current=500;
+    pa.limit_time=100;
+    pa.auto_rezero=0;
+    Z_motor.change_parameter(0,0,pa);
+    delay(300);
+    Z_motor.re_zero(2);
+  }
   /* 获取Z轴当前高度         */
   float get_location_z(){
     // for(int i=0;i<3;i++){
@@ -115,7 +129,7 @@ namespace GrapUnit{
     float high=DATA.Zdirection*5*2.0*PI*m1/65535.0;
     return high;
   }
-    void wait_to_z(float z){
+  void wait_to_z(float z){
     while(abs(z-get_location_z())>10){
       delay(20);
     }
@@ -255,6 +269,7 @@ namespace EspnowCallback{
     float z=GrapUnit::get_location_z();
     esp_now_send_package(package_type_response,redata.id,"get_z",(uint8_t*)&z,4,receive_MACAddress);
   }
+
   //电机使能
   void enable(data_package redata){
     char name=redata.data[0];
@@ -423,9 +438,10 @@ void setup() {
   xTaskCreatePinnedToCore(GrapUnit::led_update,"led_update",2048,NULL,3,NULL,1);
   //舵机高温保护
   //xTaskCreatePinnedToCore(GrapUnit::Servo_temperature_read,"Servo_protect",2048,NULL,1,NULL,1);
-  delay(1000);
+  delay(3000);
   GrapUnit::grap_servo.SERVO_LOAD_OR_UNLOAD_WRITE(1);
-
+  delay(200);
+  GrapUnit::rezero_Z();
 }
 
 void loop() {

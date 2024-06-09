@@ -459,6 +459,8 @@ public:
             p.direction,
             (p.speed >> 8) & 0xFF,
             p.speed & 0xFF,
+            (p.timeout >> 24) & 0xFF,
+            (p.timeout >> 16) & 0xFF,
             (p.timeout >> 8) & 0xFF,
             p.timeout & 0xFF,
             (p.limit_speed >> 8) & 0xFF,
@@ -899,9 +901,9 @@ public:
             //     }
             //     return 0;
             //     break;
-            case 0xFF: //未响应
-                return 0;
-                break;
+            // case 0xFF: //未响应
+            //     return 0;
+            //     break;
             default: //成功
                 for (int i = 4; i < 8; i++){
                     r_data[i]=serial->read();
@@ -968,9 +970,9 @@ public:
             //         return read_target_location(true);
             //     }
             //     break;
-            case 0xFF: //未响应
-                return 0;
-                break;
+            // case 0xFF: //未响应
+            //     return 0;
+            //     break;
             default: //成功
                 for (int i = 4; i < 8; i++){
                     while(serial->available()==0){//等待数据
@@ -1004,9 +1006,9 @@ public:
         //             return read_target_location(true);
         //         }
         //         break;
-            case 0xFF: //未响应
-                return 0;
-                break;
+            // case 0xFF: //未响应
+            //     return 0;
+            //     break;
             default: //成功
                 for (int i = 4; i < 8; i++){
                     while(serial->available()==0){//等待数据

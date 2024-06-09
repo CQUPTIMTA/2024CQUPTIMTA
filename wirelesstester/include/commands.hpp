@@ -14,17 +14,190 @@
 std::map<String, String> help_map;
 
 
+namespace commands{
+    bool wait_package(String name,int timeout=3000,bool need_show=true){
+        int i=0;
+        while(receive_datas.find(name)==receive_datas.end()){
+        delay(10);
+        i++;
+        if(i>timeout/10){
+            if(need_show) shell.println(F("time out"));
+            return true;
+        }
+        }
+        return false;
+    }
+    bool test(int id){
+        esp_now_send_package(package_type_request,id,"test",nullptr,0);
+        if(wait_package("test")) return 0;
+        receive_datas.erase("test");
+        return 1;
+    }
+    float get_x(int id){
+        esp_now_send_package(package_type_request,id,"get_x",nullptr,0);
+        if(wait_package("get_x")) return 0;
+        float data = *(float*)receive_datas["get_x"].data;
+        receive_datas.erase("get_x");
+        return data ;
+    }
+    float get_y(int id){
+        esp_now_send_package(package_type_request,id,"get_y",nullptr,0);
+        if(wait_package("get_y")) return 0;
+        float data = *(float*)receive_datas["get_y"].data;
+        receive_datas.erase("get_y");
+        return data ;
+    }
+
+    float get_z(int id){
+        esp_now_send_package(package_type_request,id,"get_z",nullptr,0);
+        if(wait_package("get_z")) return 0;
+        float data=*(float*)receive_datas["get_z"].data;
+        receive_datas.erase("get_z");
+        return data ;
+    }
+
+    struct recognition_unit_data{
+        float front_distance=0;
+        float back_distance=0;
+    };
+    recognition_unit_data get_recognition_unit(int id){
+        esp_now_send_package(package_type_request,id,"get_sensor_distance",nullptr,0);
+        recognition_unit_data data;
+        if(wait_package("get_sensor_distance")) return data;
+        data.front_distance=*(float*)receive_datas["get_sensor_distance"].data;
+        data.back_distance=*(float*)receive_datas["get_sensor_distance"].data+4;
+        receive_datas.erase("get_sensor_distance");
+        return data;
+    }
+
+    float get_voltage(int id){
+        esp_now_send_package(package_type_request,id,"get_voltage",nullptr,0);
+        if(wait_package("get_voltage")) return 0;
+        float data=*(float*)receive_datas["get_voltage"].data;
+        receive_datas.erase("get_voltage");
+        return data ;
+    }
+    bool rezero(int id){
+        esp_now_send_package(package_type_request,id,"rezero",nullptr,0);
+        if(wait_package("rezero")) return 0;
+        receive_datas.erase("rezero");
+        return 1;
+    }
+    void move_y(int id ,float point,int speed=1000,int acce=220){
+        uint8_t data[12];
+        float _point=point;
+        float _speed=speed;
+        float _acce=acce;
+        memcpy(data,&_point,4);
+        memcpy(data+4,&_speed,4);
+        memcpy(data+8,&_acce,4);
+        esp_now_send_package(package_type_request,id,"move_y",data,12);
+        if(wait_package("move_y")) return ;
+        receive_datas.erase("move_y");
+        return ; 
+    }
+    void move_to_y(int id ,float point,int speed=1000,int acce=220){
+        uint8_t data[12];
+        float _point=point;
+        float _speed=speed;
+        float _acce=acce;
+        memcpy(data,&_point,4);
+        memcpy(data+4,&_speed,4);
+        memcpy(data+8,&_acce,4);
+        esp_now_send_package(package_type_request,id,"move_to_y",data,12);
+        if(wait_package("move_to_y")) return ;
+        receive_datas.erase("move_to_y");
+        return ;
+    }
+    void move_z(int id ,float point,int speed=250,int acce=220){
+        uint8_t data[12];
+        float _point=point;
+        float _speed=speed;
+        float _acce=acce;
+        memcpy(data,&_point,4);
+        memcpy(data+4,&_speed,4);
+        memcpy(data+8,&_acce,4);
+        esp_now_send_package(package_type_request,id,"move_z",data,12);
+        if(wait_package("move_z")) return ;
+        receive_datas.erase("move_z");
+        return ;
+    }
+    void move_to_z(int id ,float point,int speed=250,int acce=220){
+        uint8_t data[12];
+        float _point=point;
+        float _speed=speed;
+        float _acce=acce;
+        memcpy(data,&_point,4);
+        memcpy(data+4,&_speed,4);
+        memcpy(data+8,&_acce,4);
+        esp_now_send_package(package_type_request,id,"move_to_z",data,12);
+        if(wait_package("move_to_z")) return ;
+        receive_datas.erase("move_to_z");
+        return ;
+    }
+    void move_x(int id ,float point,int speed=250,int acce=220){
+        uint8_t data[12];
+        float _point=point;
+        float _speed=speed;
+        float _acce=acce;
+        memcpy(data,&_point,4);
+        memcpy(data+4,&_speed,4);
+        memcpy(data+8,&_acce,4);
+        esp_now_send_package(package_type_request,id,"move_x",data,12);
+        if(wait_package("move_x")) return ;
+        receive_datas.erase("move_x");
+        return ;
+    }
+    void move_to_x(int id ,float point,int speed=250,int acce=220){
+        uint8_t data[12];
+        float _point=point;
+        float _speed=speed;
+        float _acce=acce;
+        memcpy(data,&_point,4);
+        memcpy(data+4,&_speed,4);
+        memcpy(data+8,&_acce,4);
+        esp_now_send_package(package_type_request,id,"move_to_x",data,12);
+        if(wait_package("move_to_x")) return ;
+        receive_datas.erase("move_to_x");
+        return ;
+    }
+    void grap(int id,bool state){
+        bool _state=state;
+        esp_now_send_package(package_type_request,id,"grap",(uint8_t*)&_state,1);
+        if(wait_package("grap")) return ;
+        receive_datas.erase("grap");
+        return ;
+    }
+    void buzz(int id,bool state){
+        bool _state=state;
+        esp_now_send_package(package_type_request,id,"buzz",(uint8_t*)&_state,1);
+        if(wait_package("buzz")) return ;
+        receive_datas.erase("buzz");
+        return ;
+    }
+    bool is_moveing(int id,char axis){
+        char _axis=axis;
+        esp_now_send_package(package_type_request,id,"is_moveing",(uint8_t*)&_axis,1);
+        if(wait_package("is_moveing")) return 1;
+        bool state=*(bool*)receive_datas["is_moveing"].data;
+        receive_datas.erase("is_moveing");
+        return state;
+    }
+    void wait (int _id,char axis){
+        while(is_moveing(_id,axis)) delay(50);
+    }
 
 
+}
 bool wait_package(String name,int timeout=3000,bool need_show=true){
     int i=0;
     while(receive_datas.find(name)==receive_datas.end()){
-      delay(10);
-      i++;
-      if(i>timeout/10){
+    delay(10);
+    i++;
+    if(i>timeout/10){
         if(need_show) shell.println(F("time out"));
         return true;
-      }
+    }
     }
     return false;
 }
@@ -279,15 +452,29 @@ int set_zero_point(int argc, char** args){
     return 0;
 }
 int move_to_y(int argc, char** args){
-    if (argc != 5) {
+    int _id=0;
+    float pra=0;
+    float pra2=0;
+    float pra3=0;
+    if (argc != 5 && argc != 3) {
         shell.println("bad argument count");
         shell.println(help_map["move_to_y"]);
         return -1;
     }
-    int _id=strtod(args[1],NULL);
-    float pra=strtod(args[2],NULL);
-    float pra2=strtod(args[3],NULL);
-    float pra3=strtod(args[4],NULL);
+    if(argc==5){
+        _id=strtod(args[1],NULL);
+        pra=strtod(args[2],NULL);
+        pra2=strtod(args[3],NULL);
+        pra3=strtod(args[4],NULL);
+    }else if (argc==3)
+    {
+        _id=strtod(args[1],NULL);
+        pra=strtod(args[2],NULL);
+        pra2=1000;
+        pra3=220;
+    }
+    
+
     uint8_t datas[12];
     memcpy(datas,&pra,4);
     memcpy(datas+4,&pra2,4);
@@ -305,15 +492,27 @@ int move_to_y(int argc, char** args){
 }
 
 int move_y(int argc, char** args){
-    if (argc != 5) {
+    int _id=0;
+    float pra=0;
+    float pra2=0;
+    float pra3=0;
+    if (argc != 5 && argc != 3) {
         shell.println("bad argument count");
-        shell.println(help_map["move_y"]);
+        shell.println(help_map["move_to_y"]);
         return -1;
     }
-    int _id=strtod(args[1],NULL);
-    float pra=strtod(args[2],NULL);
-    float pra2=strtod(args[3],NULL);
-    float pra3=strtod(args[4],NULL);
+    if(argc==5){
+        _id=strtod(args[1],NULL);
+        pra=strtod(args[2],NULL);
+        pra2=strtod(args[3],NULL);
+        pra3=strtod(args[4],NULL);
+    }else if (argc==3)
+    {
+        _id=strtod(args[1],NULL);
+        pra=strtod(args[2],NULL);
+        pra2=1000;
+        pra3=220;
+    }
     if(_id<6||_id>8){
         shell.println(F("data error"));
         shell.println(_id);
@@ -332,15 +531,27 @@ int move_y(int argc, char** args){
 
 
 int move_to_x(int argc, char** args){
-    if (argc != 5) {
+    int _id=0;
+    float pra=0;
+    float pra2=0;
+    float pra3=0;
+    if (argc != 5 && argc != 3) {
         shell.println("bad argument count");
-        shell.println(help_map["move_to_x"]);
+        shell.println(help_map["move_to_y"]);
         return -1;
     }
-    int _id=strtod(args[1],NULL);
-    float pra=strtod(args[2],NULL);
-    float pra2=strtod(args[3],NULL);
-    float pra3=strtod(args[4],NULL);
+    if(argc==5){
+        _id=strtod(args[1],NULL);
+        pra=strtod(args[2],NULL);
+        pra2=strtod(args[3],NULL);
+        pra3=strtod(args[4],NULL);
+    }else if (argc==3)
+    {
+        _id=strtod(args[1],NULL);
+        pra=strtod(args[2],NULL);
+        pra2=800;
+        pra3=230;
+    }
     uint8_t datas[12];
     memcpy(datas,&pra,4);
     memcpy(datas+4,&pra2,4);
@@ -357,15 +568,27 @@ int move_to_x(int argc, char** args){
 }
 
 int move_x(int argc, char** args){
-    if (argc != 5) {
+    int _id=0;
+    float pra=0;
+    float pra2=0;
+    float pra3=0;
+    if (argc != 5 && argc != 3) {
         shell.println("bad argument count");
-        shell.println(help_map["move_x"]);
+        shell.println(help_map["move_to_y"]);
         return -1;
     }
-    int _id=strtod(args[1],NULL);
-    float pra=strtod(args[2],NULL);
-    float pra2=strtod(args[3],NULL);
-    float pra3=strtod(args[4],NULL);
+    if(argc==5){
+        _id=strtod(args[1],NULL);
+        pra=strtod(args[2],NULL);
+        pra2=strtod(args[3],NULL);
+        pra3=strtod(args[4],NULL);
+    }else if (argc==3)
+    {
+        _id=strtod(args[1],NULL);
+        pra=strtod(args[2],NULL);
+        pra2=800;
+        pra3=230;
+    }
     uint8_t datas[12];
     memcpy(datas,&pra,4);
     memcpy(datas+4,&pra2,4);
@@ -381,16 +604,27 @@ int move_x(int argc, char** args){
     return 0;
 }
 
-int move_to_z(int argc, char** args){
-    if (argc != 5) {
+int move_to_z(int argc, char** args){    int _id=0;
+    float pra=0;
+    float pra2=0;
+    float pra3=0;
+    if (argc != 5 && argc != 3) {
         shell.println("bad argument count");
-        shell.println(help_map["move_to_z"]);
+        shell.println(help_map["move_to_y"]);
         return -1;
     }
-    int _id=strtod(args[1],NULL);
-    float pra=strtod(args[2],NULL);
-    float pra2=strtod(args[3],NULL);
-    float pra3=strtod(args[4],NULL);
+    if(argc==5){
+        _id=strtod(args[1],NULL);
+        pra=strtod(args[2],NULL);
+        pra2=strtod(args[3],NULL);
+        pra3=strtod(args[4],NULL);
+    }else if (argc==3)
+    {
+        _id=strtod(args[1],NULL);
+        pra=strtod(args[2],NULL);
+        pra2=250;
+        pra3=230;
+    }
     uint8_t datas[12];
     memcpy(datas,&pra,4);
     memcpy(datas+4,&pra2,4);
@@ -407,15 +641,27 @@ int move_to_z(int argc, char** args){
 }
 
 int move_z(int argc, char** args){
-    if (argc != 5) {
+    int _id=0;
+    float pra=0;
+    float pra2=0;
+    float pra3=0;
+    if (argc != 5 && argc != 3) {
         shell.println("bad argument count");
-        shell.println(help_map["move_z"]);
+        shell.println(help_map["move_to_y"]);
         return -1;
     }
-    int _id=strtod(args[1],NULL);
-    float pra=strtod(args[2],NULL);
-    float pra2=strtod(args[3],NULL);
-    float pra3=strtod(args[4],NULL);
+    if(argc==5){
+        _id=strtod(args[1],NULL);
+        pra=strtod(args[2],NULL);
+        pra2=strtod(args[3],NULL);
+        pra3=strtod(args[4],NULL);
+    }else if (argc==3)
+    {
+        _id=strtod(args[1],NULL);
+        pra=strtod(args[2],NULL);
+        pra2=250;
+        pra3=230;
+    }
     uint8_t datas[12];
     memcpy(datas,&pra,4);
     memcpy(datas+4,&pra2,4);
@@ -570,6 +816,24 @@ int set_servo_angle(int argc, char** args){
     if(wait_package("set_servo_angle")) return 0;
     receive_datas.erase("set_servo_angle");
     shell.println(F("set servo angle success"));
+    return 0;
+}
+int buzz(int argc, char** args){
+    if (argc != 3) {
+        shell.println("bad argument count");
+        shell.println(help_map["buzz"]);
+        return -1;
+    }
+    int _id=strtod(args[1],NULL);
+    bool state=strtod(args[2],NULL);
+    if(_id>8||_id<6){
+        shell.println(F("data error"));
+        return -1;
+    }
+    esp_now_send_package(package_type_request,_id,"buzz",(uint8_t*)&state,1);
+    if(wait_package("buzz")) return 0;
+    receive_datas.erase("buzz");
+    shell.println(F("buzz success"));
     return 0;
 }
 

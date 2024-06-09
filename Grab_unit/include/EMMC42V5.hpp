@@ -459,6 +459,8 @@ public:
             p.direction,
             (p.speed >> 8) & 0xFF,
             p.speed & 0xFF,
+            (p.timeout >> 24) & 0xFF,
+            (p.timeout >> 16) & 0xFF,
             (p.timeout >> 8) & 0xFF,
             p.timeout & 0xFF,
             (p.limit_speed >> 8) & 0xFF,

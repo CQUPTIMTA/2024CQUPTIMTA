@@ -33,6 +33,8 @@ void add_help(){
   help_map["set_now"]=F("set_now <id> <point>");
   help_map["read_servo_angle"]=F("read_servo_angle <id> <name>='X'||'Y'||'Z'");
   help_map["set_servo_angle"]=F("set_servo_angle <id> <state> <name>='X'||'Y'||'Z' <angle>");
+  help_map["buzz"]=F("buzz <id> <state>");
+
 }
 
 int help(int argc = 0, char** argv = NULL) {
@@ -46,6 +48,41 @@ int help(int argc = 0, char** argv = NULL) {
   }
   return 0;
 
+}
+int test_func(int argc = 0, char** argv = NULL) {
+  commands::move_to_z(1,120,250,230);
+  commands::move_to_z(2,120,250,230);
+  commands::move_to_x(1,1000,800,230);
+  commands::move_to_x(2,500,800,230);
+  commands::move_to_y(6,2020,1000,220);
+  commands::wait(6,'Y');
+  delay(300);
+  commands::move_to_z(1,0,400,0);
+  commands::wait(1,'Z');
+  delay(500);
+  commands::grap(1,0);
+  delay(600);
+  commands::move_to_z(1,230,250,235);
+  delay(300);
+  commands::move_to_y(6,2375,1000,220);
+  commands::move_to_x(1,1755,800,230);
+  commands::move_to_x(2,1000,800,230);
+  commands::wait(6,'Y');
+  delay(300);
+  commands::wait(2,'X');
+  commands::move_to_z(2,0,400,0);
+  commands::wait(2,'Z');
+  delay(1000);
+  commands::move_to_z(2,230,250,235);
+  delay(300);
+  commands::move_to_x(2,245,800,230);
+  commands::move_to_y(6,245,1000,220);
+  commands::wait(6,'Y');
+  commands::grap(1,1);
+  commands::buzz(6,1);
+  delay(3000);
+  commands::buzz(6,0);
+  return 0;
 }
 
 void setup() {
@@ -88,7 +125,9 @@ void setup() {
   shell.addCommand(F("set_now"), set_now);
   shell.addCommand(F("read_servo_angle"), read_servo_angle);
   shell.addCommand(F("set_servo_angle"), set_servo_angle);
+  shell.addCommand(F("test_func"),test_func);
 
+  shell.addCommand(F("buzz"),buzz);
   esp_now_setup();
 }
 
