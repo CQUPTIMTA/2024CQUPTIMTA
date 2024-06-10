@@ -10,11 +10,15 @@
 #include "ESPNOW.hpp"
 #include <stdlib.h>
 #include <map>
+#include <list>
+
 
 std::map<String, String> help_map;
 
 
 namespace commands{
+
+    
     bool wait_package(String name,int timeout=3000,bool need_show=true){
         int i=0;
         while(receive_datas.find(name)==receive_datas.end()){
@@ -65,7 +69,7 @@ namespace commands{
         recognition_unit_data data;
         if(wait_package("get_sensor_distance")) return data;
         data.front_distance=*(float*)receive_datas["get_sensor_distance"].data;
-        data.back_distance=*(float*)receive_datas["get_sensor_distance"].data+4;
+        data.back_distance=*(float*)(receive_datas["get_sensor_distance"].data+4);
         receive_datas.erase("get_sensor_distance");
         return data;
     }
@@ -187,7 +191,58 @@ namespace commands{
         while(is_moveing(_id,axis)) delay(50);
     }
 
+    struct point{
+        float x;
+        float y;
+    };
 
+    std::map<int,point> weight_points={
+        {1,{350.481,2375}},
+        {2,{350.481,3125}},
+        {3,{675.24,2562.5}},
+        {4,{675.24,2937.5}},
+        {5,{1000,2000}},
+        {6,{1000,2375}},
+        {7,{1000,3125}},
+        {8,{1000,3500}},
+        {9,{1324.76,2562.5}},
+        {10,{1324.76,2937.5}},
+        {11,{1649.519,2375}},
+        {12,{1649.519,3125}},
+    };
+    //识别到的砝码表
+    std::list<point> now_weights_point;
+
+    bool get_weight_point(){
+        recognition_unit_data datas[6];
+        for(int i=11;i<=16;++i){
+            datas[i-11]=get_recognition_unit(i);
+        }
+        auto have_weight=[](float raw)->bool{
+            if(raw>50&&raw<35) return true;
+            else return false;
+        };
+        now_weights_point.clear();
+        //解析识别到的砝码
+        if(have_weight(datas[0].front_distance)) now_weights_point.push_back(weight_points[6]);
+        if(have_weight(datas[0].back_distance)) now_weights_point.push_back(weight_points[5]);
+        if(have_weight(datas[1].front_distance)) now_weights_point.push_back(weight_points[3]);
+        if(have_weight(datas[1].back_distance)) now_weights_point.push_back(weight_points[1]);
+        if(have_weight(datas[2].front_distance)) now_weights_point.push_back(weight_points[4]);
+        if(have_weight(datas[2].back_distance)) now_weights_point.push_back(weight_points[2]);
+        if(have_weight(datas[3].front_distance)) now_weights_point.push_back(weight_points[7]);
+        if(have_weight(datas[3].back_distance)) now_weights_point.push_back(weight_points[8]);
+        if(have_weight(datas[4].front_distance)) now_weights_point.push_back(weight_points[10]);
+        if(have_weight(datas[4].back_distance)) now_weights_point.push_back(weight_points[12]);
+        if(have_weight(datas[5].front_distance)) now_weights_point.push_back(weight_points[9]);
+        if(have_weight(datas[5].back_distance)) now_weights_point.push_back(weight_points[11]);
+        //如果砝码数量为6个认为识别正确
+        if (now_weights_point.size()==6){
+            return true;
+        }
+        //否则认为识别失败
+        return false;
+    }
 }
 bool wait_package(String name,int timeout=3000,bool need_show=true){
     int i=0;
@@ -352,7 +407,7 @@ int get_sensor(int argc, char** args){
         //解析响应
         shell.print(F("distance:"));
         float dis1=*(float*)receive_datas["get_sensor_distance"].data;
-        float dis2=*(float*)receive_datas["get_sensor_distance"].data+4;
+        float dis2=*(float*)(receive_datas["get_sensor_distance"].data+4);
         shell.print(dis1);
         shell.print(F("mm"));
         shell.print(F("  "));
@@ -415,20 +470,29 @@ int get_zero_point(int argc, char** args){
 }
 
 int rezero(int argc, char** args){
-    if (argc != 2) {
+    if (argc < 2 || argc > 3) {
         shell.println("bad argument count");
         shell.println(help_map["rezero"]);
         return -1;
     }
-    int pra=strtod(args[1],NULL);
-    if(pra>20||pra<0){
-        shell.println(F("data error"));
-        return -1;
-    }
-    esp_now_send_package(package_type_request,pra,"auto_rezero",nullptr,0);
-    if(wait_package("auto_rezero")) return 0;
-    receive_datas.erase("auto_rezero");
-    shell.println(F("rezero success"));
+    if(argc==2){
+        int pra=strtod(args[1],NULL);
+        if(pra>20||pra<0){
+            shell.println(F("data error"));
+            return -1;
+        }
+        esp_now_send_package(package_type_request,pra,"auto_rezero",nullptr,0);
+        if(wait_package("auto_rezero")) return 0;
+        receive_datas.erase("auto_rezero");
+        shell.println(F("rezero success"));
+    }else if(argc==3){
+        int pra=strtod(args[1],NULL);
+        int pra2=strtod(args[2],NULL);
+        for(int i=pra;i<=pra2;i++){
+            commands::rezero(i);
+            delay(100);
+        }
+    };
     return 0;
 }
 
@@ -835,6 +899,18 @@ int buzz(int argc, char** args){
     receive_datas.erase("buzz");
     shell.println(F("buzz success"));
     return 0;
+}
+int setupZ(int argc, char** args){
+    if(argc!=2){
+        shell.println("bad argument count");
+        shell.println(help_map["setupZ"]);
+        return -1;
+    }
+    float pra=strtod(args[1],NULL);
+    for(int i=0;i<5;i++){
+        commands::move_to_z(i,pra,250,220);
+        delay(100);
+    }
 }
 
 #endif

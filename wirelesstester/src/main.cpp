@@ -34,7 +34,7 @@ void add_help(){
   help_map["read_servo_angle"]=F("read_servo_angle <id> <name>='X'||'Y'||'Z'");
   help_map["set_servo_angle"]=F("set_servo_angle <id> <state> <name>='X'||'Y'||'Z' <angle>");
   help_map["buzz"]=F("buzz <id> <state>");
-
+  help_map["setupZ"]=F("setupZ <high>");
 }
 
 int help(int argc = 0, char** argv = NULL) {
@@ -128,6 +128,7 @@ void setup() {
   shell.addCommand(F("test_func"),test_func);
 
   shell.addCommand(F("buzz"),buzz);
+  shell.addCommand(F("setupZ"),setupZ);
   esp_now_setup();
 }
 

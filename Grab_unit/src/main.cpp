@@ -419,9 +419,17 @@ void setup() {
   GrapUnit::Y_sensor.setup();
   //从NVS中读取数据,实现代码的复用
   GrapUnit::DATA.setup();
-  GrapUnit::DATA.read();
-  // GrapUnit::DATA.ID=4;
+
+  // delay(10);
+  // GrapUnit::DATA.grap_servo_close=173;
+  // GrapUnit::DATA.grap_servo_open=233;
   // GrapUnit::DATA.write();
+
+
+  GrapUnit::DATA.read();
+
+  // GrapUnit::DATA.ID=4;
+
   //初始化引脚
   PINSetup();
 
@@ -439,7 +447,7 @@ void setup() {
   //舵机高温保护
   //xTaskCreatePinnedToCore(GrapUnit::Servo_temperature_read,"Servo_protect",2048,NULL,1,NULL,1);
   delay(3000);
-  GrapUnit::grap_servo.SERVO_LOAD_OR_UNLOAD_WRITE(1);
+  GrapUnit::grap_servo.SERVO_LOAD_OR_UNLOAD_WRITE(0);
   delay(200);
   GrapUnit::rezero_Z();
 }
@@ -458,7 +466,11 @@ void loop() {
   // GrapUnit::grap(1);
   // delay(2000);
   // GrapUnit::grap(0);
-  Serial.println(GrapUnit::grap_servo.SERVO_POS_READ());
-  delay(2000);
+
+  //Serial.println(GrapUnit::grap_servo.SERVO_ANGLE_READ());
+  Serial.println(GrapUnit::DATA.grap_servo_close);
+  Serial.println(GrapUnit::DATA.grap_servo_open);
+
+  //delay(2000);
 }
 

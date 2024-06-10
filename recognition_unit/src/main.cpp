@@ -32,11 +32,32 @@ void online_test(data_package redata){
     esp_now_send_package(package_type_response,redata.id,"online_test",nullptr,0,receive_MACAddress);
 };
 
+void led_task(void* p){
+    while(1){
+      float voltage = 2*analogReadMilliVolts(4)/1000.0;
+      if(voltage>3.3){
+        for(int i=0;i<ID-10;i++){
+          digitalWrite(1,1);
+          delay(250);
+          digitalWrite(1,0);
+          delay(250);
+        }
+        delay(1000);
+      }else{
+        for(int i=0;i<5000;i++){
+          digitalWrite(1,1);
+          delay(50);
+          digitalWrite(1,0);
+          delay(50);
+        }
+      }
+    }
+}
 void setup() {
     DATA.setup();
     DATA.read();
     ID=DATA.ID;
-    // DATA.ID=10;
+    // DATA.ID=16;
     // DATA.write();
     Serial.begin(115200);
     frontSensor.setup();
@@ -47,6 +68,7 @@ void setup() {
     callback_map["get_voltage"]=get_voltage;
     callback_map["online_test"]=online_test;
     esp_now_setup();
+    xTaskCreate(led_task,"led_task",2048,NULL,10,NULL);
     
 
 }
@@ -59,15 +81,17 @@ void loop() {
         backSensor.update();
         delay(10);
     }
-    // Serial.print(frontSensor.get_distance_mm());
+
+    // Serial.print(frontSensor.get_distance_mm(false));
     // Serial.print(" ");
-    // Serial.println(backSensor.get_distance_mm());
+    // Serial.println(backSensor.get_distance_mm(false));
     // Serial.println(2*analogReadMilliVolts(4));
     // Serial.println(ID);
     // digitalWrite(1,1);
     // delay(300);
     // digitalWrite(1,0);
-    delay(200);
+
+    delay(500);
 }
 /*
                                               .=%@#=.                                               

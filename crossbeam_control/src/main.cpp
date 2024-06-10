@@ -70,7 +70,7 @@ namespace CROSSBEAM {
         pa.speed=100;
         pa.timeout=10000;
         pa.limit_speed=100;
-        pa.limit_current=2500;
+        pa.limit_current=800;
         pa.limit_time=100;
         pa.auto_rezero=0;
         CROSSBEAM::left_motor.change_parameter(0,0,pa);
