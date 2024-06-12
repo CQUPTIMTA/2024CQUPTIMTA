@@ -126,7 +126,7 @@ namespace commands{
         receive_datas.erase("move_z");
         return ;
     }
-    void move_to_z(int id ,float point,int speed=250,int acce=220){
+    void move_to_z(int id ,float point,int speed=250,int acce=220,bool need_wait=true){
         uint8_t data[12];
         float _point=point;
         float _speed=speed;
@@ -135,6 +135,7 @@ namespace commands{
         memcpy(data+4,&_speed,4);
         memcpy(data+8,&_acce,4);
         esp_now_send_package(package_type_request,id,"move_to_z",data,12);
+        if(!need_wait) return ;
         if(wait_package("move_to_z")) return ;
         receive_datas.erase("move_to_z");
         return ;
@@ -212,30 +213,31 @@ namespace commands{
     };
     //识别到的砝码表
     std::list<point> now_weights_point;
-
+    std::list<int> now_weights_id;
     bool get_weight_point(){
         recognition_unit_data datas[6];
         for(int i=11;i<=16;++i){
             datas[i-11]=get_recognition_unit(i);
         }
         auto have_weight=[](float raw)->bool{
-            if(raw>50&&raw<35) return true;
+            if(raw>50&&raw<350) return true;
             else return false;
         };
         now_weights_point.clear();
+        now_weights_id.clear();
         //解析识别到的砝码
-        if(have_weight(datas[0].front_distance)) now_weights_point.push_back(weight_points[6]);
-        if(have_weight(datas[0].back_distance)) now_weights_point.push_back(weight_points[5]);
-        if(have_weight(datas[1].front_distance)) now_weights_point.push_back(weight_points[3]);
-        if(have_weight(datas[1].back_distance)) now_weights_point.push_back(weight_points[1]);
-        if(have_weight(datas[2].front_distance)) now_weights_point.push_back(weight_points[4]);
-        if(have_weight(datas[2].back_distance)) now_weights_point.push_back(weight_points[2]);
-        if(have_weight(datas[3].front_distance)) now_weights_point.push_back(weight_points[7]);
-        if(have_weight(datas[3].back_distance)) now_weights_point.push_back(weight_points[8]);
-        if(have_weight(datas[4].front_distance)) now_weights_point.push_back(weight_points[10]);
-        if(have_weight(datas[4].back_distance)) now_weights_point.push_back(weight_points[12]);
-        if(have_weight(datas[5].front_distance)) now_weights_point.push_back(weight_points[9]);
-        if(have_weight(datas[5].back_distance)) now_weights_point.push_back(weight_points[11]);
+        if(have_weight(datas[0].front_distance)) {now_weights_point.push_back(weight_points[6]); now_weights_id.push_back(6);}
+        if(have_weight(datas[0].back_distance)) {now_weights_point.push_back(weight_points[5]); now_weights_id.push_back(5);}
+        if(have_weight(datas[1].front_distance)) {now_weights_point.push_back(weight_points[3]);now_weights_id.push_back(3);}
+        if(have_weight(datas[1].back_distance)) {now_weights_point.push_back(weight_points[1]);now_weights_id.push_back(1);}
+        if(have_weight(datas[2].front_distance)) {now_weights_point.push_back(weight_points[4]);now_weights_id.push_back(4);}
+        if(have_weight(datas[2].back_distance)) {now_weights_point.push_back(weight_points[2]);now_weights_id.push_back(2);}
+        if(have_weight(datas[3].front_distance)) {now_weights_point.push_back(weight_points[7]);now_weights_id.push_back(7);}
+        if(have_weight(datas[3].back_distance)) {now_weights_point.push_back(weight_points[8]);now_weights_id.push_back(8);}
+        if(have_weight(datas[4].front_distance)) {now_weights_point.push_back(weight_points[10]);now_weights_id.push_back(10);}
+        if(have_weight(datas[4].back_distance)) {now_weights_point.push_back(weight_points[12]);now_weights_id.push_back(12);}
+        if(have_weight(datas[5].front_distance)) {now_weights_point.push_back(weight_points[9]);now_weights_id.push_back(9);}
+        if(have_weight(datas[5].back_distance)) {now_weights_point.push_back(weight_points[11]);now_weights_id.push_back(11);}
         //如果砝码数量为6个认为识别正确
         if (now_weights_point.size()==6){
             return true;
@@ -911,6 +913,28 @@ int setupZ(int argc, char** args){
         commands::move_to_z(i,pra,250,220);
         delay(100);
     }
+    return 0;
+}
+int get_weight(int argc, char** args){
+    shell.println("geting weight...");
+    if(commands::get_weight_point()){
+        shell.println("get weight success");
+        shell.println("weight_id:");
+        for(auto item =commands::now_weights_id.begin();item!=commands::now_weights_id.end();++item){
+            shell.print(*item);
+            shell.print(",");
+        }
+        shell.println();
+    }else{
+        shell.println("get weight failed");
+        shell.println("get points:");
+        for(auto item =commands::now_weights_id.begin();item!=commands::now_weights_id.end();++item){
+            shell.print(*item);
+            shell.print(",");
+        }
+        shell.println();
+    }
+    return 0;
 }
 
 #endif

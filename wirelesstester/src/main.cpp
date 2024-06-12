@@ -6,7 +6,7 @@
 
 
 #include "commands.hpp"
-
+#include "web.hpp"
 
 
 void add_help(){
@@ -35,6 +35,7 @@ void add_help(){
   help_map["set_servo_angle"]=F("set_servo_angle <id> <state> <name>='X'||'Y'||'Z' <angle>");
   help_map["buzz"]=F("buzz <id> <state>");
   help_map["setupZ"]=F("setupZ <high>");
+  help_map["gw"]=F("gw : using recongnize unit get weight point");
 }
 
 int help(int argc = 0, char** argv = NULL) {
@@ -89,7 +90,8 @@ void setup() {
   Serial.begin(115200);
   delay(1000);
   add_help();
-
+  pinMode(4,OUTPUT);
+  digitalWrite(4,1);
   shell.attach(Serial);
   shell.addCommand(F("help"),help);
   //_id
@@ -129,12 +131,16 @@ void setup() {
 
   shell.addCommand(F("buzz"),buzz);
   shell.addCommand(F("setupZ"),setupZ);
+
+  shell.addCommand(F("gw"),get_weight);
+  web_setup();
   esp_now_setup();
+
 }
 
 void loop() {
     shell.executeIfInput();
     delay(10);
-
+    server.handleClient(); // 处理web请求
 }
 

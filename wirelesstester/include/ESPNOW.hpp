@@ -137,7 +137,7 @@ uint8_t receive_MACAddress[] ={0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 //ESP-NOW初始化
 void esp_now_setup() {
   //设置WiFi模式为WIFI_AP_STA（AP+Station模式）
-  WiFi.mode(WIFI_STA);
+  WiFi.mode(WIFI_AP_STA);
   if (esp_now_init() != ESP_OK) {
       Serial.println("ESP-NOW initialization failed");
       return;

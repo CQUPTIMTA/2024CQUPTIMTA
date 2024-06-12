@@ -419,16 +419,17 @@ void setup() {
   GrapUnit::Y_sensor.setup();
   //从NVS中读取数据,实现代码的复用
   GrapUnit::DATA.setup();
-
+  GrapUnit::DATA.read();
   // delay(10);
   // GrapUnit::DATA.grap_servo_close=173;
   // GrapUnit::DATA.grap_servo_open=233;
+  // GrapUnit::DATA.ID=1;
   // GrapUnit::DATA.write();
 
 
-  GrapUnit::DATA.read();
 
-  // GrapUnit::DATA.ID=4;
+
+  
 
   //初始化引脚
   PINSetup();
@@ -468,6 +469,7 @@ void loop() {
   // GrapUnit::grap(0);
 
   //Serial.println(GrapUnit::grap_servo.SERVO_ANGLE_READ());
+  Serial.println(GrapUnit::DATA.ID);
   Serial.println(GrapUnit::DATA.grap_servo_close);
   Serial.println(GrapUnit::DATA.grap_servo_open);
 
