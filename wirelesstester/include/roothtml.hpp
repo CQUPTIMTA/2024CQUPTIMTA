@@ -1,5 +1,6 @@
 const char* htmlContent = R"rawliteral(
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
@@ -24,7 +25,7 @@ const char* htmlContent = R"rawliteral(
             justify-content: left;
             align-items: flex-start;
             gap: 20px; /* 添加间距 */
-            width: 100%;
+            width: 93%;
             padding: 20px;
             box-sizing: border-box;
         }
@@ -80,12 +81,23 @@ const char* htmlContent = R"rawliteral(
         }
         .warp {
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
+            justify-content: flex-start; /* 对齐到顶部 */
+            gap: 10px; /* 增加按钮之间的间距 */
+            height: 30%;
+            width: 100px; /* 调整容器宽度以适应按钮文本 */
+        }
+        .warp button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px; /* 增加内边距 */
+            cursor: pointer;
+            margin: 5px 0; /* 增加外边距 */
             width: 100%;
-            gap: 10px; /* 添加按钮之间的间距 */
-            padding: 10px;
-            flex-direction:column
+            font-size: 16px;
+            height: auto;
         }
     </style>
 </head>

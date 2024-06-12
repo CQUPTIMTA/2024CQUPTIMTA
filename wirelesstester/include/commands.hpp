@@ -19,7 +19,7 @@ std::map<String, String> help_map;
 namespace commands{
 
     
-    bool wait_package(String name,int timeout=3000,bool need_show=true){
+    bool wait_package(String name,int timeout=1000,bool need_show=true){
         int i=0;
         while(receive_datas.find(name)==receive_datas.end()){
         delay(10);
@@ -57,6 +57,13 @@ namespace commands{
         if(wait_package("get_z")) return 0;
         float data=*(float*)receive_datas["get_z"].data;
         receive_datas.erase("get_z");
+        return data ;
+    }
+    float get_servo_temp(int id){
+        esp_now_send_package(package_type_request,id,"get_servo_temp",nullptr,0);
+        if(wait_package("get_servo_temp")) return 0;
+        float data=*(float*)receive_datas["get_servo_temp"].data;
+        receive_datas.erase("get_servo_temp");
         return data ;
     }
 
@@ -173,6 +180,14 @@ namespace commands{
         receive_datas.erase("grap");
         return ;
     }
+    void enable(int id,char axis,bool state){
+        int _id=id;
+        char pra=axis;
+        bool pra2=state;
+
+        uint8_t datas[2]={pra,pra2};
+        esp_now_send_package(package_type_request,_id,"enable",datas,2);
+    }
     void buzz(int id,bool state){
         bool _state=state;
         esp_now_send_package(package_type_request,id,"buzz",(uint8_t*)&_state,1);
@@ -190,6 +205,13 @@ namespace commands{
     }
     void wait (int _id,char axis){
         while(is_moveing(_id,axis)) delay(50);
+    }
+    void laser(int id,bool state){
+        bool _state=state;
+        esp_now_send_package(package_type_request,id,"laser",(uint8_t*)&_state,1);
+        if(wait_package("laser")) return ;
+        receive_datas.erase("laser");
+        return ;
     }
 
     struct point{
@@ -246,7 +268,7 @@ namespace commands{
         return false;
     }
 }
-bool wait_package(String name,int timeout=3000,bool need_show=true){
+bool wait_package(String name,int timeout=1000,bool need_show=true){
     int i=0;
     while(receive_datas.find(name)==receive_datas.end()){
     delay(10);

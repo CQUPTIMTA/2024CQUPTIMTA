@@ -17,7 +17,7 @@
 #define WIFI_SSID "CQUPTIMTA2"        //WiFi名称
 #define WIFI_PASSWORD "znzzjsxh"                 //WiFi密码
 
-
+#include "commands.hpp"
 
 //创建一个异步Web服务器
 WebServer server(80);  
@@ -72,30 +72,54 @@ void handleData(){
     // 将id从字符串转换为整数
     int id = atoi(idStr);
     String func=doc["func"];
+    StaticJsonDocument<200> responseDoc;
+    responseDoc.clear();
     if(func=="grap_update_data"){
-        StaticJsonDocument<400> responseDoc;
-
         // 填充JSON数据
-        responseDoc["Zposition"] = 10; // 这里可以替换为实际数据
-        responseDoc["Xposition"] = 20; // 这里可以替换为实际数据
-        responseDoc["servo_temp"] = 30; // 这里可以替换为实际数据
+        responseDoc["Zposition"] = commands::get_z(id); // 这里可以替换为实际数据
+        responseDoc["Xposition"] = commands::get_x(id);; // 这里可以替换为实际数据
+        responseDoc["servo_temp"] = commands::get_servo_temp(id); // 这里可以替换为实际数据
 
         // 将JSON数据序列化为字符串
         String jsonResponse;
         serializeJson(responseDoc, jsonResponse);
-
         // 发送响应
         server.send(200, "application/json", jsonResponse);
     }else if(func=="crossbeam_update_data"){
 
+
+        // 填充JSON数据
+        responseDoc["YPositionSpan"] = commands::get_y(id); // 这里可以替换为实际数据
+        responseDoc["Voltage"] = commands::get_voltage(id);; // 这里可以替换为实际数据
+
+        // 将JSON数据序列化为字符串
+        String jsonResponse;
+        serializeJson(responseDoc, jsonResponse);
+        // 发送响应
+        server.send(200, "application/json", jsonResponse);
     }else if(func=="rezero"){
-
+        commands::rezero(id);
     }else if(func=="load"){
-
+      if(doc["state"]=="true"){
+        commands::enable(id,'X',true);
+        commands::enable(id,'Z',true);
+      }else{
+        commands::enable(id,'X',false);
+        commands::enable(id,'Z',false);
+      }
     }else if(func=="move_to_axis"){
-
+        String axis=doc["axis"];
+        float point=atof(doc["point"].as<const char*>());
+        if(axis==(String)'X'){
+          commands::move_to_x(id,point);
+        }else if(axis==(String)'Y'){
+          commands::move_to_y(id,point);
+        }else if(axis==(String)'Z'){
+          commands::move_to_z(id,point);
+        }
     }else if(func=="laser"){
-        
+        bool state=doc["state"]=="true"?true:false;
+        commands::laser(id,state);
     }
 
 

@@ -23,8 +23,8 @@
         }
         .container {
             position: relative;
-            width: 80vh;
-            height: 80vh;
+            width: 55vw;
+            height: 55vw;
             background-color: #acacac;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
             border-radius: 5%;
@@ -61,6 +61,7 @@
             justify-content: space-between;
             height: 90vh;
             margin-right: 20px;
+            font-size: 14px;
         }
         .unit {
             background-color: #ffffff;
@@ -70,6 +71,7 @@
             text-align: center;
             width: 300px;
             height: 9vh;
+            margin-bottom: 5px;
         }
         .warp {
             display: flex;
@@ -93,6 +95,14 @@
 
         button:hover {
             background-color: #45a049;
+        }
+        .rectangle{
+            position: absolute;
+            width: 5%;
+            height: 5%;
+            background-color: rgb(236, 197, 106);
+            border-radius: 10%;
+            
         }
     </style>
 </head>
@@ -142,7 +152,9 @@
     </div>
 
     <div class="container">
-        
+        <div class="rectangle" style="top: 0; right: 0; transform: translate(-100px, 100px);"></div>
+        <div class="rectangle" style="bottom: 0 ;right: 0; transform: translate(-100px, -100px);"></div>
+        <div class="rectangle" style="top: 50%; left: 50%; transform: translate(-50%, -50%)"></div>
         <div class="circle zero-circle" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(0deg) translate(-250px) rotate(0deg);"><span>原点</span></div>
         <!-- Inner circles -->
         <div class="circle 7" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(0deg) translate(75px) rotate(0deg);"><span>7</span></div>

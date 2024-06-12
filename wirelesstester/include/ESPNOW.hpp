@@ -10,7 +10,7 @@
 #include <esp_wifi.h>
 #include <esp_now.h>
 #include <map>
-#define MAX_RETRY 20
+#define MAX_RETRY 5
 std::map<int,uint8_t*> receive_MACs;//接收MAC
 esp_now_peer_info_t peerInfo;
 //包类型
