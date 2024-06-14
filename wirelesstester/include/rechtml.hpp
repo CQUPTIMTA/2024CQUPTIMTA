@@ -116,39 +116,39 @@ const char* rechtml = R"rawliteral(
     <div class="data">
         <div class="unit">
             <label for="ID-11" class="label" data-id="11">ID: 11</label>
-            <div>D：<span id="RUdataF"></span>mm</div>
-            <div>D：<span id="RUdataB"></span>mm</div>
-            <div>V：<span id="Voltage"></span></div>
+            <div>D：<span id="RUdataF1"></span>mm</div>
+            <div>D：<span id="RUdataB1"></span>mm</div>
+            <div>V：<span id="Voltage1"></span></div>
         </div>
         <div class="unit">
             <label for="ID-12" class="label" data-id="12">ID: 12</label>
-            <div>D：<span id="RUdataF"></span>mm</div>
-            <div>D：<span id="RUdataB"></span>mm</div>
-            <div>V：<span id="Voltage"></span></div>
+            <div>D：<span id="RUdataF2"></span>mm</div>
+            <div>D：<span id="RUdataB2"></span>mm</div>
+            <div>V：<span id="Voltage2"></span></div>
         </div>
         <div class="unit">
             <label for="ID-13" class="label" data-id="13">ID: 13</label>
-            <div>D：<span id="RUdataF"></span>mm</div>
-            <div>D：<span id="RUdataB"></span>mm</div>
-            <div>V：<span id="Voltage"></span></div>
+            <div>D：<span id="RUdataF3"></span>mm</div>
+            <div>D：<span id="RUdataB3"></span>mm</div>
+            <div>V：<span id="Voltage3"></span></div>
         </div>
         <div class="unit">
             <label for="ID-14" class="label" data-id="14">ID: 14</label>
-            <div>D：<span id="RUdataF"></span>mm</div>
-            <div>D：<span id="RUdataB"></span>mm</div>
-            <div>V：<span id="Voltage"></span></div>
+            <div>D：<span id="RUdataF4"></span>mm</div>
+            <div>D：<span id="RUdataB4"></span>mm</div>
+            <div>V：<span id="Voltage4"></span></div>
         </div>
         <div class="unit">
             <label for="ID-15" class="label" data-id="15">ID: 15</label>
-            <div>D：<span id="RUdataF"></span>mm</div>
-            <div>D：<span id="RUdataB"></span>mm</div>
-            <div>V：<span id="Voltage"></span></div>
+            <div>D：<span id="RUdataF5"></span>mm</div>
+            <div>D：<span id="RUdataB5"></span>mm</div>
+            <div>V：<span id="Voltage5"></span></div>
         </div>
         <div class="unit">
             <label for="ID-16" class="label" data-id="16">ID: 16</label>
-            <div>D：<span id="RUdataF"></span>mm</div>
-            <div>D：<span id="RUdataB"></span>mm</div>
-            <div>V：<span id="Voltage"></span></div>
+            <div>D：<span id="RUdataF6"></span>mm</div>
+            <div>D：<span id="RUdataB6"></span>mm</div>
+            <div>V：<span id="Voltage6"></span></div>
         </div>
     </div>
 
@@ -226,11 +226,78 @@ const char* rechtml = R"rawliteral(
                 circleArray[i].style.backgroundColor="blue";
             }
 
+            // 创建要发送的 JSON 数据
+            const dataToSend = {
+                ID: "0",
+                func:"get_unit_data",
+            };
+            // 使用 fetch 发送请求
+            fetch('../data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dataToSend)
+            })
             
-            
+            .then(response => response.json())
+            .then(data => {    
+                // 更新 span 元素的文本内容，格式化到两位小数
+                RUdataF1.textContent = parseFloat(data.F1).toFixed(2);
+                RUdataB1.textContent = parseFloat(data.B1).toFixed(2);
+                Voltage1.textContent = parseFloat(data.V1).toFixed(2);
 
+                RUdataF2.textContent = parseFloat(data.F2).toFixed(2);
+                RUdataB2.textContent = parseFloat(data.B2).toFixed(2);
+                Voltage2.textContent = parseFloat(data.V2).toFixed(2);
+
+                RUdataF3.textContent = parseFloat(data.F3).toFixed(2);
+                RUdataB3.textContent = parseFloat(data.B3).toFixed(2);
+                Voltage3.textContent = parseFloat(data.V3).toFixed(2);
+
+                RUdataF4.textContent = parseFloat(data.F4).toFixed(2);
+                RUdataB4.textContent = parseFloat(data.B4).toFixed(2);
+                Voltage4.textContent = parseFloat(data.V4).toFixed(2);
+
+                RUdataF5.textContent = parseFloat(data.F5).toFixed(2);
+                RUdataB5.textContent = parseFloat(data.B5).toFixed(2);
+                Voltage5.textContent = parseFloat(data.V5).toFixed(2);
+
+                RUdataF6.textContent = parseFloat(data.F6).toFixed(2);
+                RUdataB6.textContent = parseFloat(data.B6).toFixed(2);
+                Voltage6.textContent = parseFloat(data.V6).toFixed(2);
+                const max_value=data.max;
+                const min_value=data.min;
+                
+                const is_weight = (value) => {
+                    return value >= min_value && value <= max_value;
+                }
+                const set_color = (index,state)=>{
+                    if(state)
+                        circleArray[index].style.backgroundColor="#219ebc";
+                    else{
+                        circleArray[index].style.backgroundColor="#white";
+                    }
+                }
+                set_color(6,is_weight(data.F1));
+                set_color(5,is_weight(data.B1));
+                set_color(3,is_weight(data.F2));
+                set_color(1,is_weight(data.B2));
+                set_color(4,is_weight(data.F3));
+                set_color(2,is_weight(data.B3));
+                set_color(7,is_weight(data.F4));
+                set_color(8,is_weight(data.B4));
+                set_color(10,is_weight(data.F5));
+                set_color(12,is_weight(data.B5));
+                set_color(9,is_weight(data.F6));
+                set_color(11,is_weight(data.B6));
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         }
     </script>
 </body>
 </html>
+
 )rawliteral";

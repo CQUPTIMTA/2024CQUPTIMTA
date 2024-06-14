@@ -60,7 +60,7 @@ void handleData(){
     String body = server.arg("plain");
 
     // 创建JSON文档对象
-    StaticJsonDocument<400> doc;
+    JsonDocument doc;
     DeserializationError error = deserializeJson(doc, body);
     // 检查JSON解析是否成功
     if (error) {
@@ -72,8 +72,7 @@ void handleData(){
     // 将id从字符串转换为整数
     int id = atoi(idStr);
     String func=doc["func"];
-    StaticJsonDocument<200> responseDoc;
-    responseDoc.clear();
+    JsonDocument responseDoc;
     if(func=="grap_update_data"){
         // 填充JSON数据
         responseDoc["Zposition"] = commands::get_z(id); // 这里可以替换为实际数据
@@ -86,8 +85,6 @@ void handleData(){
         // 发送响应
         server.send(200, "application/json", jsonResponse);
     }else if(func=="crossbeam_update_data"){
-
-
         // 填充JSON数据
         responseDoc["YPositionSpan"] = commands::get_y(id); // 这里可以替换为实际数据
         responseDoc["Voltage"] = commands::get_voltage(id);; // 这里可以替换为实际数据
@@ -120,6 +117,32 @@ void handleData(){
     }else if(func=="laser"){
         bool state=doc["state"]=="true"?true:false;
         commands::laser(id,state);
+    //识别网页更新数据
+    }else if(func=="get_unit_data"){
+        float f_data[6];
+        float b_data[6];
+        float Voltage[6];
+
+        //获取传感器数据
+        for (int i = 11; i <= 16; i++){
+          auto u_data=commands::get_recognition_unit(i);
+          f_data[i-11]=u_data.front_distance;
+          b_data[i-11]=u_data.back_distance;
+          Voltage[i-11]=commands::get_voltage(i);
+        }
+        responseDoc["min"]=5;
+        responseDoc["max"]=350;
+        // 填充JSON数据
+        for(int i=1;i<=6;i++){
+          responseDoc["F"+String(i)]=f_data[i-1];
+          responseDoc["B"+String(i)]=b_data[i-1];
+          responseDoc["V"+String(i)]=Voltage[i-1];
+        }
+        // 将JSON数据序列化为字符串
+        String jsonResponse;
+        serializeJson(responseDoc, jsonResponse);
+        // 发送响应
+        server.send(200, "application/json", jsonResponse);
     }
 
 
@@ -134,6 +157,7 @@ void web_setup(){
     server.on("/test", handletest); // 根目录请求
     server.on("/", handleRoot); // 根目录请求
     server.on("/data",handleData);//处理请求
+    server.on("/favicon.ico",[]{});
     server.onNotFound(handleNotFound); // 其他不存在的请求
     server.begin();
 }
