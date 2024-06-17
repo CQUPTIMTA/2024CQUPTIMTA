@@ -76,7 +76,7 @@ void handleData(){
     if(func=="grap_update_data"){
         // 填充JSON数据
         responseDoc["Zposition"] = commands::get_z(id); // 这里可以替换为实际数据
-        responseDoc["Xposition"] = commands::get_x(id);; // 这里可以替换为实际数据
+        responseDoc["Xposition"] = commands::get_x(id); // 这里可以替换为实际数据
         responseDoc["servo_temp"] = commands::get_servo_temp(id); // 这里可以替换为实际数据
 
         // 将JSON数据序列化为字符串

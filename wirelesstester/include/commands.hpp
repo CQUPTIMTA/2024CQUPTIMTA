@@ -64,7 +64,7 @@ namespace commands{
         if(wait_package("get_servo_temp")) return 0;
         float data=*(float*)receive_datas["get_servo_temp"].data;
         receive_datas.erase("get_servo_temp");
-        return data ;
+        return data;
     }
 
     struct recognition_unit_data{

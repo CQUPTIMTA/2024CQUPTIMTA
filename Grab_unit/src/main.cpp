@@ -368,6 +368,11 @@ namespace EspnowCallback{
     GrapUnit::DATA.write();
     esp_now_send_package(package_type_response,redata.id,"set_servo_angle",nullptr,0,receive_MACAddress);
   }
+  void get_servo_temp(data_package redata){
+    float temp=GrapUnit::grap_servo.SERVO_TEMP_READ();
+    esp_now_send_package(package_type_response,redata.id,"get_servo_temp",(uint8_t*)&temp,4,receive_MACAddress);
+  }
+
   //添加回调函数到map
   void add_callbacks(){
     callback_map["online_test"]=online_test;
@@ -388,6 +393,7 @@ namespace EspnowCallback{
     callback_map["is_moveing"]=is_moveing;
     callback_map["read_servo_angle"]=read_servo_angle;
     callback_map["set_servo_angle"]=set_servo_angle;
+    callback_map["get_servo_temp"]=get_servo_temp;
     
   }
 }
