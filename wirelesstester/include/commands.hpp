@@ -72,7 +72,8 @@ namespace commands{
         float back_distance=0;
     };
     recognition_unit_data get_recognition_unit(int id){
-        esp_now_send_package(package_type_request,id,"get_sensor_distance",nullptr,0);
+        char pra='S';
+        esp_now_send_package(package_type_request,id,"get_sensor_distance",(uint8_t*)(&pra),1);
         recognition_unit_data data;
         if(wait_package("get_sensor_distance")) return data;
         data.front_distance=*(float*)receive_datas["get_sensor_distance"].data;
@@ -89,9 +90,9 @@ namespace commands{
         return data ;
     }
     bool rezero(int id){
-        esp_now_send_package(package_type_request,id,"rezero",nullptr,0);
-        if(wait_package("rezero")) return 0;
-        receive_datas.erase("rezero");
+        esp_now_send_package(package_type_request,id,"auto_rezero",nullptr,0);
+        if(wait_package("auto_rezero")) return 0;
+        receive_datas.erase("auto_rezero");
         return 1;
     }
     void move_y(int id ,float point,int speed=1000,int acce=220){

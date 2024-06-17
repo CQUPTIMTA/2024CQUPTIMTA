@@ -100,23 +100,28 @@ void handleData(){
       if(doc["state"]=="true"){
         commands::enable(id,'X',true);
         commands::enable(id,'Z',true);
+        commands::enable(id,'G',true);
       }else{
         commands::enable(id,'X',false);
         commands::enable(id,'Z',false);
+        commands::enable(id,'G',false);
       }
     }else if(func=="move_to_axis"){
+        Serial.println("move_to_axis");
         String axis=doc["axis"];
-        float point=atof(doc["point"].as<const char*>());
+        Serial.println(axis);
+        String point=doc["value"];
+        float point_float=point.toFloat();
         if(axis==(String)'X'){
-          commands::move_to_x(id,point);
+          commands::move_to_x(id,point_float);
         }else if(axis==(String)'Y'){
-          commands::move_to_y(id,point);
+          commands::move_to_y(id,point_float);
         }else if(axis==(String)'Z'){
-          commands::move_to_z(id,point);
+          commands::move_to_z(id,point_float);
         }
     }else if(func=="laser"){
-        bool state=doc["state"]=="true"?true:false;
-        commands::laser(id,state);
+        String state=doc["state"];
+        commands::laser(id,state=="true");
     //识别网页更新数据
     }else if(func=="get_unit_data"){
         float f_data[6];
@@ -143,6 +148,9 @@ void handleData(){
         serializeJson(responseDoc, jsonResponse);
         // 发送响应
         server.send(200, "application/json", jsonResponse);
+    }else if (func=="grap"){
+      String state=doc["state"];
+      commands::grap(id,state!="true");
     }
 
 
