@@ -51,16 +51,15 @@ int help(int argc = 0, char** argv = NULL) {
 
 }
 int test_func(int argc = 0, char** argv = NULL) {
-  commands::move_to_z(1,120,250,230);
-  commands::move_to_z(2,120,250,230);
-  commands::move_to_x(1,1000,800,230);
-  commands::move_to_x(2,500,800,230);
-  commands::move_to_y(6,2020,1000,220);
+  commands::move_to_z(1,120);
+  commands::move_to_z(2,120);
+  commands::move_to_x(1,1000);
+  commands::move_to_x(2,500);
+  commands::move_to_y(6,2020);
   commands::wait(6,'Y');
   delay(300);
   commands::move_to_z(1,0,400,0);
-  commands::wait(1,'Z');
-  delay(500);
+  delay(1000);
   commands::grap(1,0);
   delay(600);
   commands::move_to_z(1,230,250,235);

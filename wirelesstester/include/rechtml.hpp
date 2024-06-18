@@ -4,6 +4,7 @@
  * @Date: 2024-06-12 16:01:20
  */
 const char* rechtml = R"rawliteral(
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -299,5 +300,6 @@ const char* rechtml = R"rawliteral(
     </script>
 </body>
 </html>
+
 
 )rawliteral";

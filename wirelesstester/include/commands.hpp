@@ -13,12 +13,13 @@
 #include <list>
 
 
+
+
+
+
 std::map<String, String> help_map;
 
-
 namespace commands{
-
-    
     bool wait_package(String name,int timeout=1000,bool need_show=true){
         int i=0;
         while(receive_datas.find(name)==receive_datas.end()){
@@ -87,7 +88,7 @@ namespace commands{
         if(wait_package("get_voltage")) return 0;
         float data=*(float*)receive_datas["get_voltage"].data;
         receive_datas.erase("get_voltage");
-        return data ;
+        return data;
     }
     bool rezero(int id){
         esp_now_send_package(package_type_request,id,"auto_rezero",nullptr,0);
@@ -161,7 +162,7 @@ namespace commands{
         receive_datas.erase("move_x");
         return ;
     }
-    void move_to_x(int id ,float point,int speed=250,int acce=220){
+    void move_to_x(int id ,float point,int speed=800,int acce=220){
         uint8_t data[12];
         float _point=point;
         float _speed=speed;
@@ -204,8 +205,9 @@ namespace commands{
         receive_datas.erase("is_moveing");
         return state;
     }
-    void wait (int _id,char axis){
-        while(is_moveing(_id,axis)) delay(50);
+    void wait (int _id,char axis,int dey_time=300,int HZ=10){
+        delay(dey_time);
+        while(is_moveing(_id,axis)) delay(1000/HZ);
     }
     void laser(int id,bool state){
         bool _state=state;
@@ -269,6 +271,11 @@ namespace commands{
         return false;
     }
 }
+
+
+//↓↓↓↓↓下面是用于命令行的函数↓↓↓↓↓
+
+
 bool wait_package(String name,int timeout=1000,bool need_show=true){
     int i=0;
     while(receive_datas.find(name)==receive_datas.end()){

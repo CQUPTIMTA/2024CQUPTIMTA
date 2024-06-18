@@ -1,6 +1,5 @@
 const char* htmlContent = R"rawliteral(
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
@@ -215,13 +214,14 @@ const char* htmlContent = R"rawliteral(
             .then(response => response.json())
             .then(data => {
                 // 更新 span 元素的文本内容
-                zPositionSpan.textContent = data.Zposition;
-                xPositionSpan.textContent = data.Xposition;
+                zPositionSpan.textContent = parseFloat(data.Zposition).toFixed(2);
+                xPositionSpan.textContent = parseFloat(data.Xposition).toFixed(2);
                 servoTempSpan.textContent = data.servo_temp;
             })
             .catch(error => {
                 console.error('Error:', error);
             });
+            
 
         }
         function crossbeam_update_data(button){
