@@ -404,8 +404,10 @@ void setup() {
   //从NVS中读取数据,实现代码的复用
   GrapUnit::DATA.setup();
   GrapUnit::DATA.read();
+  // GrapUnit::DATA.offset_dir=1;
   // GrapUnit::DATA.ID=4;
-  // GrapUnit::DATA.write();
+  GrapUnit::DATA.grap_servo_close = 201.30;
+  GrapUnit::DATA.write();
   //初始化引脚
   PINSetup();
 
