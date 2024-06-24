@@ -205,7 +205,7 @@ namespace commands{
         receive_datas.erase("is_moveing");
         return state;
     }
-    void wait (int _id,char axis,int dey_time=300,int HZ=10){
+    void wait (int _id,char axis,int dey_time=300,int HZ=2){
         delay(dey_time);
         while(is_moveing(_id,axis)) delay(1000/HZ);
     }
