@@ -13,52 +13,78 @@ int ID=0;
 NVSDATA DATA;
 
 namespace CROSSBEAM {
+    SemaphoreHandle_t motorMutex = xSemaphoreCreateMutex();
     HardwareSerial motor_ser(2);
     EMMC42V5 left_motor(&motor_ser,1);
     EMMC42V5 right_motor(&motor_ser,2);
 
     //获取现在的Y位置,单位是mm
     float get_now_location_y() {
-        int64_t m1=-1*left_motor.read_current_location();
-        // int64_t m2=right_motor.read_current_location();
-        double dis1=double(m1)*GEARTEETH*2.0*PI/double(65535);
+        xSemaphoreTake(motorMutex, portMAX_DELAY);
+        double dis1=0;
+        for (int i = 0; i < 10; i++){
+            int64_t m1=-1*left_motor.read_current_location();
+            int64_t m2=right_motor.read_current_location();
+            double dis1=double(m1+m2)*GEARTEETH*2.0*PI/2*double(65535);
+            if(dis1<4000&&dis1>0&&dis1!=0) break;
+            i++;
+        }
+        xSemaphoreGive(motorMutex);//释放互斥锁
         return dis1+DATA.Y_ZERO_POINT;
+
+        
     }
     //现在的Y位置,单位是mm
     void set_now_location_y(float y) {
+        xSemaphoreTake(motorMutex, portMAX_DELAY);
         float delta=y-get_now_location_y();
         DATA.Y_ZERO_POINT=DATA.Y_ZERO_POINT+delta;
         DATA.write();
+        xSemaphoreGive(motorMutex);//释放互斥锁
     }
 
     //设置Y电机使能
     void Y_load(bool is_load=true) {
+        xSemaphoreTake(motorMutex, portMAX_DELAY);
         left_motor.enable(is_load);
         right_motor.enable(is_load);
+        xSemaphoreGive(motorMutex);//释放互斥锁
     }
     //等待Y轴移动完成
     void wait_to_y(float y,float delta=10) {
-        while(y-get_now_location_y()>delta){
+        int runtime=0;
+        xSemaphoreTake(motorMutex, portMAX_DELAY);
+        while(y-get_now_location_y()>delta && runtime<3000) {
             delay(20);
+            runtime+=20;
         }
+        xSemaphoreGive(motorMutex);//释放互斥锁
     }
     //Y轴移动到,单位是mm
     void move_to_y(float y,float speed,float acce=0,bool need_wait=true) {
+        xSemaphoreTake(motorMutex, portMAX_DELAY);
         float now=get_now_location_y();
         float delta=y-now;
         int delta_pulse=delta*200*16/(GEARTEETH*2.0*PI);
         left_motor.pulse_control(-1*delta_pulse,speed,acce,false,true);
         right_motor.pulse_control(delta_pulse,speed,acce,false,true);
         left_motor.sync();
+        xSemaphoreGive(motorMutex);//释放互斥锁
         if(need_wait){
             wait_to_y(y);
         }
     }
     //Y轴是否正在移动
     bool is_moving() {
-        auto taget=left_motor.read_target_location();
-        auto real=left_motor.read_current_location();
+        xSemaphoreTake(motorMutex, portMAX_DELAY);
+        for(int i=0;i<10;i++){
+            auto taget=left_motor.read_target_location();
+            auto real=left_motor.read_current_location();
+            if(taget!=0&&real!=0) break;
+        }
+
         float delata=2.0*GEARTEETH* PI*(taget-real)/65535;
+        xSemaphoreGive(motorMutex);//释放互斥锁
         return abs(delata)>20;
     }
     void rezero(){

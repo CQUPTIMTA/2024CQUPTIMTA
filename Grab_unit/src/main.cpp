@@ -27,7 +27,8 @@ namespace GrapUnit{
   RTOSSERVO grap_servo(&servo_ser,1);
   RTOSSERVO X_servo(&servo_ser,2);
   RTOSSERVO Y_servo(&servo_ser,3);
-  
+  //电机互斥锁
+  SemaphoreHandle_t motorMutex = xSemaphoreCreateMutex();
   //机械爪的开合
   void grap(bool state){
     if(state){
@@ -75,19 +76,23 @@ namespace GrapUnit{
     digitalWrite(15,digitalRead(11));
   }
 
-  float get_now_x_location(){
-      return 40*PI*X_motor.read_input_pulses()/(16*200);
-  }
-  //*************移动毫米为单位******************//
-  int64_t location_to_pluse(float location){
-      return location*16*200/float(40*PI);
-  }
 
 //获取当前X轴电机所处位置
   float get_now_location_x() {
-    int64_t m1=X_motor.read_current_location()/*DATA.X_ZERO_POINT*65535.0/(20*2.0*PI)*/;
-    double m2=double(m1)*40.0*PI/65535.0;
-    return m2+DATA.X_ZERO_POINT;
+    xSemaphoreTake(motorMutex, portMAX_DELAY);
+    double location=0;
+    double m2=0;
+    for (int i = 0; i < 10; i++){
+      int64_t m1=X_motor.read_current_location();
+      m2=double(m1)*40.0*PI/65535.0;
+      location=m2+DATA.X_ZERO_POINT;
+      if(location<2000&&location>0) break;
+      i++;
+      delay(50);
+    }
+
+    xSemaphoreGive(motorMutex);//释放互斥锁
+    return location;
   }
 //等待X轴电机移动到指定位置
   void wait_to_x(float x){
@@ -100,7 +105,9 @@ namespace GrapUnit{
     float now=get_now_location_x();
     float delta=x-now;
     int delta_pulse=delta*200*16/(20*2.0*PI);
+    xSemaphoreTake(motorMutex, portMAX_DELAY);
     X_motor.pulse_control(delta_pulse,speed,acce);
+    xSemaphoreGive(motorMutex);//释放互斥锁
     if(need_wait){
         wait_to_x(x);
     }
@@ -118,15 +125,14 @@ namespace GrapUnit{
     Z_motor.change_parameter(0,0,pa);
     delay(300);
     Z_motor.re_zero(2);
+
   }
   /* 获取Z轴当前高度         */
   float get_location_z(){
-    // for(int i=0;i<3;i++){
-    //   high_sensor.update();
-    // }
-    // return high_sensor.get_distance_mm(false);
+    xSemaphoreTake(motorMutex, portMAX_DELAY);
     int64_t m1=Z_motor.read_current_location();
     float high=DATA.Zdirection*5*2.0*PI*m1/65535.0;
+    xSemaphoreGive(motorMutex);//释放互斥锁
     return high;
   }
   void wait_to_z(float z){
@@ -139,7 +145,9 @@ namespace GrapUnit{
     float now=get_location_z();
     float delta=z-now;
     int delta_pulse=delta*200*16/(5*2.0*PI);
+    xSemaphoreTake(motorMutex, portMAX_DELAY);
     Z_motor.pulse_control(DATA.Zdirection*delta_pulse,speed,acce);
+    xSemaphoreGive(motorMutex);//释放互斥锁
     if(need_wait){
         wait_to_z(z);
     }
@@ -148,12 +156,16 @@ namespace GrapUnit{
     int64_t taget=0;
     int64_t now=0;
     if(axis=='X'){
+      xSemaphoreTake(motorMutex, portMAX_DELAY);
       taget=X_motor.read_target_location();
       now=X_motor.read_current_location();
+      xSemaphoreGive(motorMutex);//释放互斥锁
     }
     else if (axis=='Z'){
+      xSemaphoreTake(motorMutex, portMAX_DELAY);
       taget=Z_motor.read_target_location();
       now=Z_motor.read_current_location();
+      xSemaphoreGive(motorMutex);//释放互斥锁
     }
     float delta=abs(taget-now);
     return delta>10000?true:false;
