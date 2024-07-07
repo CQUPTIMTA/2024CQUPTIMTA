@@ -16,20 +16,19 @@ namespace CROSSBEAM {
     HardwareSerial motor_ser(2);
     EMMC42V5 left_motor(&motor_ser,1);
     EMMC42V5 right_motor(&motor_ser,2);
-    float zero_point=0;
+
     //获取现在的Y位置,单位是mm
     float get_now_location_y() {
-        int64_t m1=left_motor.read_current_location()+zero_point*65535.0/(GEARTEETH*2.0*PI);
-        int64_t m2=-1*right_motor.read_current_location()+zero_point*65535.0/(GEARTEETH*2.0*PI);
-        return double(m1+m2)*GEARTEETH*2.0*PI/double(65535*2);
-
-
+        int64_t m1=-1*left_motor.read_current_location();
+        // int64_t m2=right_motor.read_current_location();
+        double dis1=double(m1)*GEARTEETH*2.0*PI/double(65535);
+        return dis1+DATA.Y_ZERO_POINT;
     }
     //现在的Y位置,单位是mm
     void set_now_location_y(float y) {
-        left_motor.angle_reset();
-        right_motor.angle_reset();
-        zero_point=y*65535.0/(GEARTEETH*2.0*PI);
+        float delta=y-get_now_location_y();
+        DATA.Y_ZERO_POINT=DATA.Y_ZERO_POINT+delta;
+        DATA.write();
     }
 
     //设置Y电机使能
@@ -48,8 +47,8 @@ namespace CROSSBEAM {
         float now=get_now_location_y();
         float delta=y-now;
         int delta_pulse=delta*200*16/(GEARTEETH*2.0*PI);
-        left_motor.pulse_control(delta_pulse,speed,acce,false,true);
-        right_motor.pulse_control(-1*delta_pulse,speed,acce,false,true);
+        left_motor.pulse_control(-1*delta_pulse,speed,acce,false,true);
+        right_motor.pulse_control(delta_pulse,speed,acce,false,true);
         left_motor.sync();
         if(need_wait){
             wait_to_y(y);
@@ -62,7 +61,27 @@ namespace CROSSBEAM {
         float delata=2.0*GEARTEETH* PI*(taget-real)/65535;
         return abs(delata)>20;
     }
-
+    void rezero(){
+        if(ID==7) return;
+        
+        REZREO_parameter pa;
+        pa.mode=2;
+        pa.direction=DATA.offset_dir>0?0:1;
+        pa.speed=100;
+        pa.timeout=10000;
+        pa.limit_speed=100;
+        pa.limit_current=800;
+        pa.limit_time=100;
+        pa.auto_rezero=0;
+        CROSSBEAM::left_motor.change_parameter(0,0,pa);
+        pa.direction=!pa.direction;
+        CROSSBEAM::right_motor.change_parameter(0,0,pa);
+        delay(500);
+        CROSSBEAM::right_motor.re_zero(2,true);
+        CROSSBEAM::left_motor.re_zero(2,true);
+        delay(10);
+        left_motor.sync();
+    }
 }
 
 
@@ -71,7 +90,8 @@ namespace EspnowCallback {
         esp_now_send_package(package_type_response,redata.id,"online_test",redata.data,redata.data_len,receive_MACAddress);
     };
     void rezero(data_package redata){
-        return;
+        esp_now_send_package(package_type_response,redata.id,"rezero",nullptr,0,receive_MACAddress);
+        CROSSBEAM::rezero();
     }
     void move_to_y(data_package redata){
         float y=*(float*)redata.data;
@@ -125,24 +145,30 @@ namespace EspnowCallback {
     }
     void is_moving(data_package redata){
         bool is_moving=CROSSBEAM::is_moving();
-        esp_now_send_package(package_type_response,redata.id,"is_moving",(uint8_t*)&is_moving,sizeof(is_moving),receive_MACAddress);
+        esp_now_send_package(package_type_response,redata.id,"is_moveing",(uint8_t*)&is_moving,sizeof(is_moving),receive_MACAddress);
     }
     void set_now_location_y(data_package redata){
         float y=*(float*)redata.data;
-        float now=CROSSBEAM::get_now_location_y();
-        
+        CROSSBEAM::set_now_location_y(y);
+        esp_now_send_package(package_type_response,redata.id,"set_now_location_y",nullptr,0,receive_MACAddress);
+    }
+    void buzz(data_package redata){
+        bool state=(bool)redata.data[0];
+        digitalWrite(buzz_pin,state);
+        esp_now_send_package(package_type_response,redata.id,"buzz",nullptr,0,receive_MACAddress);
     }
     void add_callbacks(){
         callback_map["online_test"]=online_test;
-        callback_map["rezero"]=rezero;
+        callback_map["auto_rezero"]=rezero;
         callback_map["move_to_y"]=move_to_y;
         callback_map["move_y"]=move_y;
         callback_map["enable"]=enable;
         callback_map["set_zero_point"]=set_zero_point;
-
+        callback_map["set_now_location"]=set_now_location_y;
         callback_map["get_y"]=get_y;
         callback_map["get_voltage"]=get_voltage;
-        callback_map["is_moving"]=is_moving;
+        callback_map["is_moveing"]=is_moving;
+        callback_map["buzz"]=buzz;
 
     }
 }
@@ -150,7 +176,7 @@ namespace EspnowCallback {
 void setup() {
     DATA.setup();
     DATA.read();
-    // DATA.ID=7;
+    // DATA.ID=8;
     // DATA.write();
     ID=DATA.ID;
 
@@ -166,6 +192,7 @@ void setup() {
     delay(1000);
 
 
+
 }
 
 void loop() {
@@ -177,6 +204,80 @@ void loop() {
         digitalWrite(17,0);
         delay(300);
     }
-    
+
+
 }
 
+/*
+                                              .=%@#=.                                               
+                                            -*@@@@@@@#=.                                            
+                                         .+%@@@@@@@@@@@@#=                                          
+                                       -#@@@@@@@* =@@@@@@@@*:                                       
+                                     =%@@@@@@@@=   -@@@@@@@@@#-                                     
+                                  .+@@@@@@@@@@-     .@@@@@@@@@@%=                                   
+                                .+@@@@@@@@@@@@-     +@@@@@@@@@@@@@+.                                
+                               +@@@@@@@@@@@@@@@    .@@@@@@@@@@@@@@@@+.                              
+                             =@@@@@@@@@@@@@@@%-     =%@@%@@@@@@@@@@@@@=                             
+                           -%@@@@@@@@@@@@+..     .       -@@@@@@@@@@@@@%-                           
+                         .#@@@@@@@@@@@@@#       -@+       +@@@@@@@@@@@@@@#:                         
+                        +@@@@@@@@@@@@@@@@+     +@@@+     =@@@@@@@@@@@@@@@@@+                        
+                      :%@@@@@@@@@@@@@@@@@+    *@@@@*     =@@@@@@@@@@@@@@@@@@%-                      
+                     +@@@@@@@@@@@@@@#+*+-   .#@@@@+       :+*+*@@@@@@@@@@@@@@@*                     
+                   :%@@@@@@@@@@@@@@+       :%@@@@-    .-       -@@@@@@@@@@@@@@@%:                   
+                  =@@@@@@@@@@@@@@@@-      -@@@@%:    .%@+      =@@@@@@@@@@@@@@@@@=                  
+                 *@@@@@@@@@@@@@@@@@@.    =@@@@#.    -@@@@+    =@@@@@@@@@@@@@@@@@@@#                 
+               .%@@@@@@@@@@@@@@@@@@+    +@@@@*     =@@@@%:    .#@@@@@@@@@@@@@@@@@@@%.               
+              :@@@@@@@@@@@@@@@%:::.    #@@@@+     +@@@@#        .::.*@@@@@@@@@@@@@@@@-              
+             -@@@@@@@@@@@@@@@%       .%@@@@=     *@@@@*     +-       *@@@@@@@@@@@@@@@@=             
+            =@@@@@@@@@@@@@@@@@#.    -@@@@@-    :%@@@@=    .#@@+     +@@@@@@@@@@@@@@@@@@=            
+           =@@@@@@@@@@@@@@@@@@@:    =====.     -+===:     :====     @@@@@@@@@@@@@@@@@@@@+           
+          +@@@@@@@@@@@@@@@#%%#-                                     :*%%#%@@@@@@@@@@@@@@@+          
+         =@@@@@@@@@@@@@@%.       ...........................              *@@@@@@@@@@@@@@@=         
+        =@@@@@@@@@@@@@@@+      .#@@@@@@@@@@@@@@@@@@@@@@@@@@#     .*:      =@@@@@@@@@@@@@@@@-        
+       -@@@@@@@@@@@@@@@@@=    .%@@@@@@@@@@@@@@@@@@@@@@@@@@#     :@@@-    =@@@@@@@@@@@@@@@@@@:       
+      :@@@@@@@@@@@@@@@@@%.   -@@@@%+=====================:     -@@@@%    :%@@@@@@@@@@@@@@@@@@.      
+      %@@@@@@@@@@@@@=-=:    =@@@@#.                           +@@@@#.      -=--%@@@@@@@@@@@@@%      
+     #@@@@@@@@@@@@@:       +@@@@*      ............. .       *@@@@*             %@@@@@@@@@@@@@+     
+    =@@@@@@@@@@@@@@#.     #@@@@+     +@@@@@@@@@@@@@@@#.    .#@@@@+     +#.     +@@@@@@@@@@@@@@@:    
+   .@@@@@@@@@@@@@@@@-   .%@@@@=     *@@@@@@@@@@@@@@@#     :%@@@@-     *@@%:    @@@@@@@@@@@@@@@@%    
+   %@@@@@@@@@@@%%%#=   :@@@@@:    .#@@@@+-----------     -@@@@@:     #@@@@=    :#%%%@@@@@@@@@@@@*   
+  =@@@@@@@@@@@=       -@@@@%.    :%@@@@-                =@@@@%.    .%@@@@=          :%@@@@@@@@@@@:  
+  @@@@@@@@@@@%.      =@@@@#     -@@@@%:    .:::-:      +@@@@#     :@@@@@:    .       +@@@@@@@@@@@#  
+ +@@@@@@@@@@@@@.    *@@@@*     =@@@@#.    -@@@@@:     #@@@@+     =@@@@%.    -@#     +@@@@@@@@@@@@@- 
+.@@@@@@@@@@@@@#    *@%@%=     +@@@@*     =@@@@#.    .#@@@%=     +@@@@#     =@@@%.   =@@@@@@@@@@@@@% 
++@@@@@@@@*-==-                .          .           . ..       .....      .....     .=+=+@@@@@@@@@-
+%@@@@@@@+                                                                                 -@@@@@@@@#
+@@@@@@@-       =#%#=     -#%%#-     -#%%*.     +%%%*.    .*%%#=     :#%%#-     =%%%*.      .#@@@@@@@
+@@@@@@=.::::::*@@@@@*:::-@@@@@@-:::=@@@@@%::::*@@@@@#::::%@@@@@+:---@@@@@@=---+@@@@@%------:=@@@@@@@
+=@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@+
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@%%##**++===----:::::------===++***##%%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@* 
+  -#@@@@@@@@@@@@@@@@%#*+=-:.                                        ..::-=+*##%@@@@@@@@@@@@@@@@@#-  
+    :=*%@@@@@%#*=-:                                                             .:-=+*#%%%%##+-.    
+                                                                                        
+                                                                                                              
+                                                                                                              
+                                                                                                              
+         @@@;      ;@@@     @##    ##  ####$     @@@@@@@@@@     ##  o##      ;##o@@@@@@@@@@    @@@            
+        @@@@@@    @@@@@@    @@@    @@  @@@@@@@o  @@@@@@@@@     %@@  @@@$     @@@ @@@@@@@@@@    @@@            
+       @@@@@@@   @@@@@@@#   @@@   !@@  @@@@@@@@ *@@@@@@@@@     @@@  @@@@     @@@ @@@@@@@@@@   @@@@            
+      @@@   @@@ #@@   @@@   @@    @@@  @@    @@@    @@%        @@@  @@@@    @@@@     @@       @@@@            
+      @@#   @$  @@@    @@   @@    @@@  @@    @@@    @@         @@@  @@@@    @@@@    #@@      %@@@@            
+     @@@        @@     @@   @@    @@@  @@    @@@    @@         @@$  @@@@   @@@@@    @@@      @@#@@            
+     @@@       @@@     @@  $@@    @@% @@@    @@@   o@@         @@   @@@@   @@@@@    @@@      @@ @@            
+     @@@       @@@     @@  @@@    @@  @@@   @@@    @@@         @@  @@@@@   @@@@$    @@@     @@@ @@            
+     @@$       @@@    !@@  @@@    @@  @@@@@@@@@    @@@        .@@  @@#@@* @@ @@     @@o     @@! @@&           
+     @@        @@@    @@@  @@@   !@@  @@@@@@@@     @@@        @@@  @@  @@ @@ @@     @@      @@  @@@           
+    #@@        @@.    @@@  @@!   @@@  @@@@@@       @@#        @@@  @@  @@@@  @@     @@     @@@@@@@@           
+    @@@        @@     @@@  @@    @@@  @@           @@         @@@  @@  @@@@ .@@    $@@     @@@@@@@@           
+    @@@        @@     @@@  @@    @@@  @@           @@         @@#  @@  @@@  @@@    @@@    !@@@@@@@@           
+    @@@        @@    $@@  .@@    @@; @@@          !@@         @@  %@@  @@@  @@@    @@@    @@@   @@@           
+    @@@    @@; @@    @@@  !@@   $@@  @@@          @@@         @@  @@@  @@   @@*    @@@    @@    .@@           
+     @@@  @@@  @@@  @@@;   @@@  @@@  @@@          @@@         @@  @@@       @@     @@*   @@@     @@           
+     @@@@@@@o  #@@@@@@@    @@@@@@@   @@@          @@@        @@@  @@#       @@     @@    @@@     @@           
+      @@@@@@    @@@@@@     #@@@@@!   @@           @@&        @@@  @@       ;@@     @@    @@      @@&          
+        $         *@@        .%                                                                               
+                   @@                                                                                         
+                   @@@@                                                                                       
+                   @@@@                                                                                       
+                    @@@                                                                                                                                                                                           
+*/

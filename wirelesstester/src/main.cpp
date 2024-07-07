@@ -6,7 +6,7 @@
 
 
 #include "commands.hpp"
-
+#include "web.hpp"
 
 
 void add_help(){
@@ -33,6 +33,9 @@ void add_help(){
   help_map["set_now"]=F("set_now <id> <point>");
   help_map["read_servo_angle"]=F("read_servo_angle <id> <name>='X'||'Y'||'Z'");
   help_map["set_servo_angle"]=F("set_servo_angle <id> <state> <name>='X'||'Y'||'Z' <angle>");
+  help_map["buzz"]=F("buzz <id> <state>");
+  help_map["setupZ"]=F("setupZ <high>");
+  help_map["gw"]=F("gw : using recongnize unit get weight point");
 }
 
 int help(int argc = 0, char** argv = NULL) {
@@ -47,12 +50,47 @@ int help(int argc = 0, char** argv = NULL) {
   return 0;
 
 }
+int test_func(int argc = 0, char** argv = NULL) {
+  commands::move_to_z(1,120);
+  commands::move_to_z(2,120);
+  commands::move_to_x(1,1000);
+  commands::move_to_x(2,500);
+  commands::move_to_y(6,2020);
+  commands::wait(6,'Y');
+  delay(300);
+  commands::move_to_z(1,0,400,0);
+  delay(1000);
+  commands::grap(1,0);
+  delay(600);
+  commands::move_to_z(1,230,250,235);
+  delay(300);
+  commands::move_to_y(6,2375,1000,220);
+  commands::move_to_x(1,1755,800,230);
+  commands::move_to_x(2,1000,800,230);
+  commands::wait(6,'Y');
+  delay(300);
+  commands::wait(2,'X');
+  commands::move_to_z(2,0,400,0);
+  commands::wait(2,'Z');
+  delay(1000);
+  commands::move_to_z(2,230,250,235);
+  delay(300);
+  commands::move_to_x(2,245,800,230);
+  commands::move_to_y(6,245,1000,220);
+  commands::wait(6,'Y');
+  commands::grap(1,1);
+  commands::buzz(6,1);
+  delay(3000);
+  commands::buzz(6,0);
+  return 0;
+}
 
 void setup() {
   Serial.begin(115200);
   delay(1000);
   add_help();
-
+  pinMode(4,OUTPUT);
+  digitalWrite(4,1);
   shell.attach(Serial);
   shell.addCommand(F("help"),help);
   //_id
@@ -88,13 +126,20 @@ void setup() {
   shell.addCommand(F("set_now"), set_now);
   shell.addCommand(F("read_servo_angle"), read_servo_angle);
   shell.addCommand(F("set_servo_angle"), set_servo_angle);
+  shell.addCommand(F("test_func"),test_func);
 
+  shell.addCommand(F("buzz"),buzz);
+  shell.addCommand(F("setupZ"),setupZ);
+
+  shell.addCommand(F("gw"),get_weight);
+  web_setup();
   esp_now_setup();
+
 }
 
 void loop() {
     shell.executeIfInput();
     delay(10);
-
+    server.handleClient(); // 处理web请求
 }
 

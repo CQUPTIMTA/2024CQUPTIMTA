@@ -1,8 +1,7 @@
-//#include <Arduino.h>
 #include "ESP32FLASHEEPROM.hpp"
 #include "SENSOR.hpp"
 #include "EMMC42V5.hpp"
-#include "HEServo.hpp"
+#include "RTOSSERVO.hpp"
 #include "ESPNOW.hpp"
 #define laser_pin 42
 
@@ -25,9 +24,9 @@ namespace GrapUnit{
   EMMC42V5 X_motor(&motor_ser,2);
   EMMC42V5 Z_motor(&motor_ser,1);
   //夹爪舵机
-  HEServo grap_servo(&servo_ser,1);
-  HEServo X_servo(&servo_ser,2);
-  HEServo Y_servo(&servo_ser,3);
+  RTOSSERVO grap_servo(&servo_ser,1);
+  RTOSSERVO X_servo(&servo_ser,2);
+  RTOSSERVO Y_servo(&servo_ser,3);
   
   //机械爪的开合
   void grap(bool state){
@@ -87,9 +86,8 @@ namespace GrapUnit{
 //获取当前X轴电机所处位置
   float get_now_location_x() {
     int64_t m1=X_motor.read_current_location()/*DATA.X_ZERO_POINT*65535.0/(20*2.0*PI)*/;
-    // Serial.print("m1:");
-    // Serial.println(m1);
-    return double(m1)*40.0*PI/65535.0;
+    double m2=double(m1)*40.0*PI/65535.0;
+    return m2+DATA.X_ZERO_POINT;
   }
 //等待X轴电机移动到指定位置
   void wait_to_x(float x){
@@ -107,14 +105,31 @@ namespace GrapUnit{
         wait_to_x(x);
     }
   }
+  void rezero_Z(){
+    REZREO_parameter pa;
+    pa.mode=2;
+    pa.direction=DATA.Zdirection>0?1:0;
+    pa.speed=100;
+    pa.timeout=10000;
+    pa.limit_speed=300;
+    pa.limit_current=500;
+    pa.limit_time=100;
+    pa.auto_rezero=0;
+    Z_motor.change_parameter(0,0,pa);
+    delay(300);
+    Z_motor.re_zero(2);
+  }
   /* 获取Z轴当前高度         */
   float get_location_z(){
-    for(int i=0;i<3;i++){
-      high_sensor.update();
-    }
-    return high_sensor.get_distance_mm(false);
+    // for(int i=0;i<3;i++){
+    //   high_sensor.update();
+    // }
+    // return high_sensor.get_distance_mm(false);
+    int64_t m1=Z_motor.read_current_location();
+    float high=DATA.Zdirection*5*2.0*PI*m1/65535.0;
+    return high;
   }
-    void wait_to_z(float z){
+  void wait_to_z(float z){
     while(abs(z-get_location_z())>10){
       delay(20);
     }
@@ -254,6 +269,7 @@ namespace EspnowCallback{
     float z=GrapUnit::get_location_z();
     esp_now_send_package(package_type_response,redata.id,"get_z",(uint8_t*)&z,4,receive_MACAddress);
   }
+
   //电机使能
   void enable(data_package redata){
     char name=redata.data[0];
@@ -310,10 +326,10 @@ namespace EspnowCallback{
     esp_now_send_package(package_type_response,redata.id,"set_now_location",nullptr,0,receive_MACAddress);
   }
   //是否在运动
-  void is_moving(data_package redata){
+  void is_moveing(data_package redata){
     char axis=redata.data[0];
     bool state=GrapUnit::is_moveing(axis);
-    esp_now_send_package(package_type_response,redata.id,"is_moving",(uint8_t*)&state,1,receive_MACAddress);
+    esp_now_send_package(package_type_response,redata.id,"is_moveing",(uint8_t*)&state,1,receive_MACAddress);
   }
   //读取舵机角度
   void read_servo_angle(data_package redata){
@@ -352,6 +368,11 @@ namespace EspnowCallback{
     GrapUnit::DATA.write();
     esp_now_send_package(package_type_response,redata.id,"set_servo_angle",nullptr,0,receive_MACAddress);
   }
+  void get_servo_temp(data_package redata){
+    float temp=GrapUnit::grap_servo.SERVO_TEMP_READ();
+    esp_now_send_package(package_type_response,redata.id,"get_servo_temp",(uint8_t*)&temp,4,receive_MACAddress);
+  }
+
   //添加回调函数到map
   void add_callbacks(){
     callback_map["online_test"]=online_test;
@@ -369,9 +390,10 @@ namespace EspnowCallback{
     callback_map["set_now_location"]=set_now_location;
     callback_map["get_x"]=get_x;
     callback_map["get_z"]=get_z;
-    callback_map["is_moving"]=is_moving;
+    callback_map["is_moveing"]=is_moveing;
     callback_map["read_servo_angle"]=read_servo_angle;
     callback_map["set_servo_angle"]=set_servo_angle;
+    callback_map["get_servo_temp"]=get_servo_temp;
     
   }
 }
@@ -404,10 +426,17 @@ void setup() {
   //从NVS中读取数据,实现代码的复用
   GrapUnit::DATA.setup();
   GrapUnit::DATA.read();
-  // GrapUnit::DATA.offset_dir=1;
-  // GrapUnit::DATA.ID=4;
-  GrapUnit::DATA.grap_servo_close = 201.30;
-  GrapUnit::DATA.write();
+  // delay(10);
+  // GrapUnit::DATA.grap_servo_close=204;
+  // GrapUnit::DATA.grap_servo_open=141;
+  // // GrapUnit::DATA.ID=1;
+  // GrapUnit::DATA.write();
+
+
+
+
+  
+
   //初始化引脚
   PINSetup();
 
@@ -424,9 +453,10 @@ void setup() {
   xTaskCreatePinnedToCore(GrapUnit::led_update,"led_update",2048,NULL,3,NULL,1);
   //舵机高温保护
   //xTaskCreatePinnedToCore(GrapUnit::Servo_temperature_read,"Servo_protect",2048,NULL,1,NULL,1);
-  delay(1000);
-  GrapUnit::grap_servo.SERVO_LOAD_OR_UNLOAD_WRITE(1);
-
+  delay(3000);
+  GrapUnit::grap_servo.SERVO_LOAD_OR_UNLOAD_WRITE(0);
+  delay(200);
+  GrapUnit::rezero_Z();
 }
 
 void loop() {
@@ -443,7 +473,12 @@ void loop() {
   // GrapUnit::grap(1);
   // delay(2000);
   // GrapUnit::grap(0);
-  Serial.println(GrapUnit::grap_servo.SERVO_POS_READ());
-  delay(2000);
+
+  // Serial.println(GrapUnit::grap_servo.SERVO_ANGLE_READ());
+  // Serial.println(GrapUnit::DATA.ID);
+  // Serial.println(GrapUnit::DATA.grap_servo_close);
+  // Serial.println(GrapUnit::DATA.grap_servo_open);
+
+  //delay(2000);
 }
 

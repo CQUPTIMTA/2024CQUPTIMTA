@@ -28,12 +28,13 @@ class ESP32FLASHEEPROM{
     * 读取数据函数
     */
     void read(){
+        //注意KEY长度要小于15
         ID=preferences.getInt("ID",0);
         temperature=preferences.getFloat("temperature",0);
         Xdirection=preferences.getInt("Xdirection",1);
         Zdirection=preferences.getInt("Zdirection",1);
-        Ysensor_zero_point=preferences.getFloat("Ysensor_zero_point",0);
-        Xsensor_zero_point=preferences.getFloat("Xsensor_zero_point",0);
+        Ysensor_zero_point=preferences.getFloat("Ys_zero_p",0);
+        Xsensor_zero_point=preferences.getFloat("Xs_zero_p",0);
         PUT_Z_POINT=preferences.getFloat("PUT_Z_POINT",0);
         TAKE_Z_POINT=preferences.getFloat("TAKE_Z_POINT",0);
         sensor_high=preferences.getFloat("sensor_high",0);
@@ -41,8 +42,8 @@ class ESP32FLASHEEPROM{
         X_ZERO_POINT = preferences.getFloat("X_ZERO_POINT",0);
         X_PLUSE_MM = preferences.getFloat("X_PLUSE_MM",0);
         Z_PLUSE_MM = preferences.getFloat("Z_ZERO_POINT",0);
-        grap_servo_open = preferences.getInt("grap_servo_open",0);
-        grap_servo_close = preferences.getInt("grap_servo_close",0);
+        grap_servo_open = preferences.getFloat("gso",0);
+        grap_servo_close = preferences.getFloat("gsc",0);
         senser_x_down = preferences.getFloat("senser_x_down",0);
         senser_x_up = preferences.getFloat("senser_x_up",0);
         senser_y_down = preferences.getFloat("senser_y_down",0);
@@ -55,8 +56,8 @@ class ESP32FLASHEEPROM{
         preferences.putFloat("temperature",temperature);
         preferences.putInt("Xdirection",Xdirection);
         preferences.putInt("Zdirection",Zdirection);
-        preferences.putFloat("Ysensor_zero_point",Ysensor_zero_point);
-        preferences.putFloat("Xsensor_zero_point",Xsensor_zero_point);
+        preferences.putFloat("Ys_zero_p",Ysensor_zero_point);
+        preferences.putFloat("Xs_zero_p",Xsensor_zero_point);
         preferences.putFloat("PUT_Z_POINT",PUT_Z_POINT);
         preferences.putFloat("TAKE_Z_POINT",TAKE_Z_POINT);
         preferences.putFloat("sensor_high",sensor_high);
@@ -64,8 +65,8 @@ class ESP32FLASHEEPROM{
         preferences.putFloat("X_ZERO_POINT",X_ZERO_POINT);
         preferences.putFloat("X_PLUSE_MM",X_PLUSE_MM);
         preferences.putFloat("Z_PLUSE_MM",Z_PLUSE_MM);
-        preferences.putInt("grap_servo_open",grap_servo_open);
-        preferences.putInt("grap_servo_close",grap_servo_close);
+        preferences.putFloat("gso",grap_servo_open);
+        preferences.putFloat("gsc",grap_servo_close);
         preferences.putFloat("senser_x_down",senser_x_down);
         preferences.putFloat("senser_x_up",senser_x_up);
         preferences.putFloat("senser_y_down",senser_y_down);
