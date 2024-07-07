@@ -399,7 +399,6 @@ namespace EspnowCallback{
 }
 
 
-
 //初始化引脚
 void PINSetup(){
   pinMode(4,OUTPUT);
@@ -417,7 +416,6 @@ void PINSetup(){
 }
 void setup() {
   Serial.begin(115200);
-
   GrapUnit::motor_ser.begin(115200,SERIAL_8N1,10,9);
   GrapUnit::servo_ser.begin(115200,SERIAL_8N1,35,36);
   GrapUnit::high_sensor.setup();
@@ -431,22 +429,12 @@ void setup() {
   // GrapUnit::DATA.grap_servo_open=141;
   // // GrapUnit::DATA.ID=1;
   // GrapUnit::DATA.write();
-
-
-
-
-  
-
   //初始化引脚
   PINSetup();
-
   /*无线控制部分*/
   EspnowCallback::add_callbacks();
   esp_now_setup();
-
   ID=GrapUnit::DATA.ID; 
-  
-
   /*一些任务*/
   //xTaskCreatePinnedToCore(GrapUnit::update_sensor,"update_sensor",2048,NULL,2,NULL,1);
   //指示灯更新任务
@@ -469,16 +457,13 @@ void loop() {
   // GrapUnit::get_close();
   delay(1000);
   // GrapUnit::get_open();
-
   // GrapUnit::grap(1);
   // delay(2000);
   // GrapUnit::grap(0);
-
   // Serial.println(GrapUnit::grap_servo.SERVO_ANGLE_READ());
   // Serial.println(GrapUnit::DATA.ID);
   // Serial.println(GrapUnit::DATA.grap_servo_close);
   // Serial.println(GrapUnit::DATA.grap_servo_open);
-
   //delay(2000);
 }
 
