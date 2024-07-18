@@ -13,78 +13,76 @@ int ID=0;
 NVSDATA DATA;
 
 namespace CROSSBEAM {
-    SemaphoreHandle_t motorMutex = xSemaphoreCreateMutex();
+    // SemaphoreHandle_t motorMutex = xSemaphoreCreateMutex();
     HardwareSerial motor_ser(2);
     EMMC42V5 left_motor(&motor_ser,1);
     EMMC42V5 right_motor(&motor_ser,2);
+	float taget_location_y = 0;
+	//获取现在的Y位置,单位是mm
+	float get_now_location_y() {
 
-    //获取现在的Y位置,单位是mm
-    float get_now_location_y() {
-        xSemaphoreTake(motorMutex, portMAX_DELAY);
         double dis1=0;
         for (int i = 0; i < 10; i++){
             int64_t m1=-1*left_motor.read_current_location();
             int64_t m2=right_motor.read_current_location();
             double dis1=double(m1+m2)*GEARTEETH*2.0*PI/2*double(65535);
-            if(dis1<4000&&dis1>0&&dis1!=0) break;
-            i++;
-        }
-        xSemaphoreGive(motorMutex);//释放互斥锁
-        return dis1+DATA.Y_ZERO_POINT;
+			if (dis1 < 4000 && dis1 >=0) {
+                if(dis1==0 && taget_location_y!=0) {
+                    continue;
+                }
+				return dis1 + DATA.Y_ZERO_POINT;
+			}
+            delay(10);
+		}
+        return taget_location_y;
 
         
     }
     //现在的Y位置,单位是mm
     void set_now_location_y(float y) {
-        xSemaphoreTake(motorMutex, portMAX_DELAY);
         float delta=y-get_now_location_y();
         DATA.Y_ZERO_POINT=DATA.Y_ZERO_POINT+delta;
         DATA.write();
-        xSemaphoreGive(motorMutex);//释放互斥锁
+        taget_location_y=y;
     }
 
     //设置Y电机使能
     void Y_load(bool is_load=true) {
-        xSemaphoreTake(motorMutex, portMAX_DELAY);
         left_motor.enable(is_load);
         right_motor.enable(is_load);
-        xSemaphoreGive(motorMutex);//释放互斥锁
     }
     //等待Y轴移动完成
     void wait_to_y(float y,float delta=10) {
         int runtime=0;
-        xSemaphoreTake(motorMutex, portMAX_DELAY);
         while(y-get_now_location_y()>delta && runtime<3000) {
             delay(20);
             runtime+=20;
         }
-        xSemaphoreGive(motorMutex);//释放互斥锁
     }
     //Y轴移动到,单位是mm
     void move_to_y(float y,float speed,float acce=0,bool need_wait=true) {
-        xSemaphoreTake(motorMutex, portMAX_DELAY);
+        
         float now=get_now_location_y();
         float delta=y-now;
         int delta_pulse=delta*200*16/(GEARTEETH*2.0*PI);
         left_motor.pulse_control(-1*delta_pulse,speed,acce,false,true);
         right_motor.pulse_control(delta_pulse,speed,acce,false,true);
         left_motor.sync();
-        xSemaphoreGive(motorMutex);//释放互斥锁
-        if(need_wait){
-            wait_to_y(y);
-        }
+		taget_location_y = y;
+		// if(need_wait){
+        //     wait_to_y(y);
+        // }
     }
     //Y轴是否正在移动
     bool is_moving() {
-        xSemaphoreTake(motorMutex, portMAX_DELAY);
+        float taget;
+        float real;
         for(int i=0;i<10;i++){
-            auto taget=left_motor.read_target_location();
-            auto real=left_motor.read_current_location();
+            taget=left_motor.read_target_location();
+            real=left_motor.read_current_location();
             if(taget!=0&&real!=0) break;
-        }
-
-        float delata=2.0*GEARTEETH* PI*(taget-real)/65535;
-        xSemaphoreGive(motorMutex);//释放互斥锁
+		}
+		float delata = 2.0 * GEARTEETH * PI * (taget - real) / 65535;
         return abs(delata)>20;
     }
     void rezero(){
@@ -107,7 +105,8 @@ namespace CROSSBEAM {
         CROSSBEAM::left_motor.re_zero(2,true);
         delay(10);
         left_motor.sync();
-    }
+		taget_location_y = DATA.Y_ZERO_POINT;
+	}
 }
 
 
@@ -125,11 +124,11 @@ namespace EspnowCallback {
         float acce=*(float*)(redata.data+8);
         CROSSBEAM::move_to_y(y,speed,acce);
         esp_now_send_package(package_type_response,redata.id,"move_to_y",nullptr,0,receive_MACAddress);
-        while(abs(CROSSBEAM::get_now_location_y()-y)>10){
-            delay(20);
-        }
-        char* sname="move_to_y";
-        esp_now_send_package(package_type_normal,redata.id,"action_complete",(uint8_t*)sname,strlen(sname),receive_MACAddress);
+        // while(abs(CROSSBEAM::get_now_location_y()-y)>10){
+        //     delay(20);
+        // }
+        // char* sname="move_to_y";
+        // esp_now_send_package(package_type_normal,redata.id,"action_complete",(uint8_t*)sname,strlen(sname),receive_MACAddress);
     }
     void move_y(data_package redata){
         float delta=*(float*)redata.data;
@@ -139,11 +138,11 @@ namespace EspnowCallback {
         float y=now+delta;
         CROSSBEAM::move_to_y(y,speed,acce);
         esp_now_send_package(package_type_response,redata.id,"move_y",nullptr,0,receive_MACAddress);
-        while (abs(CROSSBEAM::get_now_location_y()-y)>10){
-            delay(20);
-        }
-        char* sname="move_y";
-        esp_now_send_package(package_type_normal,redata.id,"action_complete",(uint8_t*)sname,strlen(sname),receive_MACAddress);
+        // while (abs(CROSSBEAM::get_now_location_y()-y)>10){
+        //     delay(20);
+        // }
+        // char* sname="move_y";
+        // esp_now_send_package(package_type_normal,redata.id,"action_complete",(uint8_t*)sname,strlen(sname),receive_MACAddress);
     }
     void get_y(data_package redata){
         float y=CROSSBEAM::get_now_location_y();
@@ -213,6 +212,10 @@ void setup() {
     Serial.begin(115200);
     CROSSBEAM::motor_ser.begin(115200, SERIAL_8N1, 10, 9);
     setup_pins();
+
+    digitalWrite(17,1);
+    delay(5000);
+    digitalWrite(17,0);
     attachInterrupt(digitalPinToInterrupt(LEFT_SW_PIN), left_sw_interrupt, CHANGE);
     attachInterrupt(digitalPinToInterrupt(RIGHT_SW_PIN), right_sw_interrupt, CHANGE);
     delay(1000);

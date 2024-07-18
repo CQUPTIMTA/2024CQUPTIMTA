@@ -151,8 +151,10 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
     }
 
   };
+  String name = String(re_data.name,re_data.name_len);
+  name+=String(millis());
   //如果有对应的回调函数，则执行
-  xTaskCreate(package_response, "package_response_task", 4096,&re_data, 1, NULL);
+  xTaskCreate(package_response, name.c_str(), 8192,&re_data, 5, NULL);
   last_time_receive_time=millis();
 }
 

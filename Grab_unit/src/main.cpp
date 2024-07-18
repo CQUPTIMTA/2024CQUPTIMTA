@@ -29,6 +29,9 @@ namespace GrapUnit{
   RTOSSERVO Y_servo(&servo_ser,3);
   //电机互斥锁
   SemaphoreHandle_t motorMutex = xSemaphoreCreateMutex();
+
+  float taget_x=0;
+
   //机械爪的开合
   void grap(bool state){
     if(state){
@@ -70,6 +73,7 @@ namespace GrapUnit{
     }
     X_motor.speed_control(0,0);
     X_motor.angle_reset();
+    taget_x=0;
   }
 
   void IO11interrupt( ){
@@ -86,13 +90,14 @@ namespace GrapUnit{
       int64_t m1=X_motor.read_current_location();
       m2=double(m1)*40.0*PI/65535.0;
       location=m2+DATA.X_ZERO_POINT;
-      if(location<2000&&location>0) break;
-      i++;
-      delay(50);
+      if(location<2000&&location>0&&m1!=0){
+        xSemaphoreGive(motorMutex);//释放互斥锁
+        return location;
+      }
+      delay(10);
     }
-
     xSemaphoreGive(motorMutex);//释放互斥锁
-    return location;
+    return taget_x;
   }
 //等待X轴电机移动到指定位置
   void wait_to_x(float x){
@@ -108,6 +113,7 @@ namespace GrapUnit{
     xSemaphoreTake(motorMutex, portMAX_DELAY);
     X_motor.pulse_control(delta_pulse,speed,acce);
     xSemaphoreGive(motorMutex);//释放互斥锁
+    taget_x=x;
     if(need_wait){
         wait_to_x(x);
     }

@@ -10,6 +10,7 @@
 #include <esp_wifi.h>
 #include <esp_now.h>
 #include <map>
+
 #define MAX_RETRY 5
 std::map<int,uint8_t*> receive_MACs;//接收MAC
 esp_now_peer_info_t peerInfo;
@@ -74,7 +75,7 @@ struct data_package {
   }
   bool add_package(uint8_t* data,int len){
     const uint8_t* d=(const uint8_t*)data;
-    add_package(d,len);
+    return add_package(d,len);
   }
   int get_len(){
     return 6+name_len+data_len+1;
