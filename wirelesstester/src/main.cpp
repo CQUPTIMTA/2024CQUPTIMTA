@@ -50,66 +50,83 @@ int help(int argc = 0, char** argv = NULL) {
   return 0;
 
 }
-int test_func(int argc = 0, char** argv = NULL) {
+
+TaskHandle_t main_func_handler=nullptr;
+void main_func(void * pvParameters) {
   commands::grap(1,1);
   commands::grap(2,1);
   commands::move_to_z(1,120);
-  delay(100);
   commands::move_to_z(2,120);
-  delay(500);
   commands::move_to_x(1,1000);
-  delay(100);
   commands::move_to_x(2,500);
-  delay(100);
   commands::move_to_y(6,2040);
-  delay(100);
-  commands::wait(6,'Y',300,1);
-  delay(100);
-  commands::move_to_z(1,0,250,0);
-  delay(700);
-  // commands::move_y(6,-40);
-  // delay(100);
+
+
+  commands::wait(6,'Y',1000,5);
+
+  commands::move_to_z(1,5,250,0);
+  delay(1500);
+  commands::move_y(6,-40);
+  delay(300);
   commands::grap(1,0);
-  delay(600);
   commands::move_to_z(1,230);
   delay(300);
   commands::move_to_x(1,1755);
-  delay(100);
   commands::move_to_x(2,1000);
-  delay(700);
+  delay(500);
   commands::move_to_y(6,2375+40);
-  delay(300);
-  commands::wait(6,'Y');
-  delay(100);
-  commands::wait(2,'X');
-  delay(100);
-  commands::move_to_z(2,0,250,0);
+
+  commands::wait(6,'Y',1000,5);
+  commands::move_to_z(2,5,250,0);
   delay(1000);
-  // commands::move_y(6,-40);
-  // delay(500);
+  commands::move_y(6,-40);
+  delay(500);
   commands::grap(2,0);
-  delay(1000);
   commands::move_to_z(2,230);
   delay(500);
   commands::move_to_x(2,245);
-  delay(1000);
+  delay(500);
   commands::move_to_y(6,245);
-  delay(1000);
-  commands::wait(6,'Y');
+  commands::wait(6,'Y',1000,5);
   commands::grap(1,1);
   commands::grap(2,1);
   commands::buzz(6,1);
   delay(3000);
   commands::buzz(6,0);
+  delay(500);
+  main_func_handler=nullptr;
+  vTaskDelete(NULL);
+}
+
+
+int main_func_task(int argc = 0, char** argv = NULL) {
+  if(main_func_handler!=nullptr){
+    xTaskCreatePinnedToCore(main_func, "main_task", 16384, NULL, 5, &main_func_handler,1);
+  }
   return 0;
+}
+void cmd_task(void * pvParameters) {
+  while (1) {
+    shell.executeIfInput();
+    delay(10);
+  }
+}
+void web_task(void * pvParameters) {
+  web_setup();
+  while (1) {
+    server.handleClient();
+    delay(10);
+  }
 }
 
 void setup() {
   Serial.begin(115200);
+  pinMode(10,OUTPUT);
+  digitalWrite(10,1);
   delay(1000);
   add_help();
-  pinMode(4,OUTPUT);
-  digitalWrite(4,1);
+  //pinMode(10,OUTPUT);
+  //digitalWrite(10,1);
   shell.attach(Serial);
   shell.addCommand(F("help"),help);
   //_id
@@ -145,20 +162,20 @@ void setup() {
   shell.addCommand(F("set_now"), set_now);
   shell.addCommand(F("read_servo_angle"), read_servo_angle);
   shell.addCommand(F("set_servo_angle"), set_servo_angle);
-  shell.addCommand(F("test_func"),test_func);
+  shell.addCommand(F("main"),main_func_task);
 
   shell.addCommand(F("buzz"),buzz);
   shell.addCommand(F("setupZ"),setupZ);
 
   shell.addCommand(F("gw"),get_weight);
-  web_setup();
+  
   esp_now_setup();
-
+  digitalWrite(10,0);
+  xTaskCreatePinnedToCore(cmd_task, "cmd_task", 2048, NULL, 5, NULL,0);
+  xTaskCreatePinnedToCore(web_task, "web_task", 4096, NULL, 4, NULL,1);
 }
 
 void loop() {
-    shell.executeIfInput();
-    delay(10);
-    server.handleClient(); // 处理web请求
+  delay(3000);
 }
 

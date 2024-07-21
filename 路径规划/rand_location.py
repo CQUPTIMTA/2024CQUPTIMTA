@@ -168,38 +168,40 @@ if __name__ == '__main__':
         for point in weight_point:
             background=add_image(background, foreground, x_offset=point[0], y_offset=point[1])
         # background = add_image(background, foreground, x_offset=2000, y_offset=1000)
-        background,case = test(background,weight_point)
+        #background,case = test(background,weight_point)
 
 
 
 
 
-        background=cv2.resize(background,(640,320))
+        background=cv2.resize(background,(1280,720))
+        cv2.imshow('Result', background)
+
+        if cv2.waitKey() == ord('q'):
+            break
+
+        # if(case=="normal"):
+        #     pass
+        #     # if cv2.waitKey(100000) == ord('q'):
+        #         # continue
+        #     # break
+        # elif(case=="need_wait"):
+
+        #     cv2.imshow('Result', background)
+        #     if cv2.waitKey(100000) == ord('q'):
+        #         pass
 
 
-
-        if(case=="normal"):
-            pass
-            # if cv2.waitKey(100000) == ord('q'):
-                # continue
-            # break
-        elif(case=="need_wait"):
-
-            cv2.imshow('Result', background)
-            if cv2.waitKey(100000) == ord('q'):
-                pass
+        # elif(case=="fly2"):
+        #     error_num=error_num+1
+        #     # cv2.imshow('Result', background)
+        #     # if cv2.waitKey(100000) == ord('q'):
+        #     #     pass
+        # else:
+        #     error_num=error_num+1
+        #     #保存错误图片
+        #     # cv2.imwrite('./err/'+str(error_num)+'.png',background)
 
 
-        elif(case=="fly2"):
-            error_num=error_num+1
-            # cv2.imshow('Result', background)
-            # if cv2.waitKey(100000) == ord('q'):
-            #     pass
-        else:
-            error_num=error_num+1
-            #保存错误图片
-            # cv2.imwrite('./err/'+str(error_num)+'.png',background)
-
-
-        print("total:",total,"error:",error_num,"percent:",error_num/total)
+        #print("total:",total,"error:",error_num,"percent:",error_num/total)
         #cv2.destroyAllWindows()

@@ -175,9 +175,10 @@ namespace commands{
         receive_datas.erase("move_to_x");
         return ;
     }
-    void grap(int id,bool state){
+    void grap(int id,bool state,int delay_time=700){
         bool _state=state;
         esp_now_send_package(package_type_request,id,"grap",(uint8_t*)&_state,1);
+        delay(delay_time);
         if(wait_package("grap")) return ;
         receive_datas.erase("grap");
         return ;
@@ -205,9 +206,9 @@ namespace commands{
         receive_datas.erase("is_moveing");
         return state;
     }
-    void wait (int _id,char axis,int dey_time=300,int HZ=2){
+    void wait (int _id,char axis,int dey_time=300,int wHZ=4){
         delay(dey_time);
-        while(is_moveing(_id,axis)) delay(1000/HZ);
+        while(is_moveing(_id,axis)) delay(1000/wHZ);
     }
     void laser(int id,bool state){
         bool _state=state;
@@ -270,10 +271,75 @@ namespace commands{
         //否则认为识别失败
         return false;
     }
+
+    void all_z_to_height(float height){
+        for(int i=1;i<=5;++i){
+            commands::move_to_z(i,height);
+        }
+    }
+    void all_x_y_to_setup_point(){
+        move_to_y(6,1000);
+        move_to_y(7,1550);
+        move_to_y(8,2100);
+        move_to_x(1,1500);
+        move_to_x(2,500);
+        move_to_x(3,1000);
+        move_to_x(4,1500);
+        move_to_x(5,500);
+    }
+    void all_x_y_to_release_point(){
+
+        move_to_y(6,245);
+        move_to_y(7,2750);
+        move_to_y(8,3755);
+
+        move_to_x(1,1755);
+        move_to_x(2,245);
+        move_to_x(3,1000);
+        move_to_x(4,1755);
+        move_to_x(5,245);
+    }
+    void all_laser(bool state){
+        for(int i=1;i<=5;++i){
+            commands::laser(i,state);
+        }
+    }
+    void all_grap(bool state){
+        for(int i=1;i<=5;++i){
+            commands::grap(i,state,100);
+        }
+    }
+    void all_x_rezero(){
+        for(int i=1;i<=5;++i){
+            commands::rezero(i);
+        }
+    }
+    void all_y_rezero(){
+        for(int i=6;i<=8;++i){
+            commands::rezero(i);
+        }
+    }
 }
 
 
-//↓↓↓↓↓下面是用于命令行的函数↓↓↓↓↓
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//↓↓↓↓↓下面是用于命令行的函数↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
 
 
 bool wait_package(String name,int timeout=1000,bool need_show=true){

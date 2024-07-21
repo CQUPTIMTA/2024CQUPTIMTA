@@ -65,8 +65,10 @@ namespace CROSSBEAM {
         float now=get_now_location_y();
         float delta=y-now;
         int delta_pulse=delta*200*16/(GEARTEETH*2.0*PI);
-        left_motor.pulse_control(-1*delta_pulse,speed,acce,false,true);
-        right_motor.pulse_control(delta_pulse,speed,acce,false,true);
+        left_motor.pulse_control(-1*delta_pulse,speed,acce,false,true,true);
+
+        right_motor.pulse_control(delta_pulse,speed,acce,false,true,true);
+        delay(1);
         left_motor.sync();
 		taget_location_y = y;
 		// if(need_wait){
@@ -122,8 +124,9 @@ namespace EspnowCallback {
         float y=*(float*)redata.data;
         float speed=*(float*)(redata.data+4);
         float acce=*(float*)(redata.data+8);
-        CROSSBEAM::move_to_y(y,speed,acce);
         esp_now_send_package(package_type_response,redata.id,"move_to_y",nullptr,0,receive_MACAddress);
+        CROSSBEAM::move_to_y(y,speed,acce);
+        
         // while(abs(CROSSBEAM::get_now_location_y()-y)>10){
         //     delay(20);
         // }
@@ -216,12 +219,6 @@ void setup() {
     digitalWrite(17,1);
     delay(5000);
     digitalWrite(17,0);
-    attachInterrupt(digitalPinToInterrupt(LEFT_SW_PIN), left_sw_interrupt, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(RIGHT_SW_PIN), right_sw_interrupt, CHANGE);
-    delay(1000);
-
-
-
 }
 
 void loop() {

@@ -22,6 +22,8 @@
 //创建一个异步Web服务器
 WebServer server(80);  
 
+extern void main_func(void * pvParameters);
+extern TaskHandle_t main_func_handler;
 // 处理设备检测的请求
 void handleDetect() {
   // 发送一个空白的响应
@@ -151,8 +153,48 @@ void handleData(){
     }else if (func=="grap"){
       String state=doc["state"];
       commands::grap(id,state!="true");
+    }else if(func=="test_func"){
+      if(main_func_handler==nullptr){
+        xTaskCreatePinnedToCore(main_func, "test", 4096, NULL, 5, &main_func_handler,1);
+      }
+    }else if (func=="All_Z"){
+      String state=doc["state"];
+      if(state=="true"){
+        commands::all_z_to_height(230);
+      }
+      else{
+        commands::all_z_to_height(0);
+      }
+    }else if (func=="ALL_TO_START"){
+      commands::all_x_y_to_setup_point();
+    }else if (func=="ALL_TO_RELEASE"){
+      commands::all_x_y_to_release_point();
+    }else if (func=="ALL_LASER"){
+      String state=doc["state"];
+      if(state=="true"){
+        commands::all_laser(true);
+      }else{
+        commands::all_laser(false);
+      }
+    }else if (func=="ALL_rezero"){
+      String axis=doc["axis"];
+      if (axis=="X"){
+        commands::all_x_rezero();
+      }else if (axis=="Y"){
+        commands::all_y_rezero();
+      }
+    }else if (func=="ALL_GRAP"){
+      String state=doc["state"];
+      if(state=="true"){
+        commands::all_grap(true);
+      }else{
+        commands::all_grap(false);
+      }
+    } else if (func=="MIAN_FUNC"){
+      if(main_func_handler==nullptr){
+        xTaskCreatePinnedToCore(main_func, "test", 4096, NULL, 5, &main_func_handler,1);
+      }
     }
-
 
 }
 void web_setup(){

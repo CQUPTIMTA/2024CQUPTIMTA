@@ -257,7 +257,7 @@ public:
         };
     };
     //控制多个电机只需要任意调用一次同步
-    COMMAND_STATUS sync(bool need_retry=false){
+    void sync(){
         // 命令功能：多机同步运动
         // 命令格式：地址 + 0xFF + 0x66 + 校验字节
         // 命令返回：地址 + 0xFF + 命令状态 + 校验字节
@@ -266,25 +266,25 @@ public:
         uint8_t data[4] = {0x00, 0xFF, 0x66, this->checksum};
         send(data,4);
 
-        uint8_t r_data[4] = {0, 0, 0, 0};
-        read(r_data, 4);
-        switch (r_data[2]){
-            case 0xE2 : //条件不满足
-                return COMMAND_FAIL;
-                break;
-            case 0x02: //成功
-                return COMMAND_SUCCESS;
-                break;
-            case 0xEE: //错误命令
-                return COMMAND_ERROR;
-                break;
-            default: //未响应
-                if(need_retry){//需要重试
-                    return sync(true);
-                }
-                return NOT_RESPONSE;
-                break;
-        };
+        // uint8_t r_data[4] = {0, 0, 0, 0};
+        // read(r_data, 4);
+        // switch (r_data[2]){
+        //     case 0xE2 : //条件不满足
+        //         return COMMAND_FAIL;
+        //         break;
+        //     case 0x02: //成功
+        //         return COMMAND_SUCCESS;
+        //         break;
+        //     case 0xEE: //错误命令
+        //         return COMMAND_ERROR;
+        //         break;
+        //     default: //未响应
+        //         if(need_retry){//需要重试
+        //             return sync(true);
+        //         }
+        //         return NOT_RESPONSE;
+        //         break;
+        // };
     };
     
     //让电机转到想要的位置，然后发送该命令设置单圈回零的零点位置
