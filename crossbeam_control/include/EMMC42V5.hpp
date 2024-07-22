@@ -974,10 +974,11 @@ public:
             //     return 0;
             //     break;
             default: //成功
-                for (int i = 4; i < 8; i++){
-                    while(serial->available()==0){//等待数据
+                                while(serial->available()>4){//等待数据
                         delay(1);
                     }
+                for (int i = 4; i < 8; i++){
+
                     r_data[i]=serial->read();
                 }
                 int64_t rdata = r_data[3]<<24|r_data[4]<<16|r_data[5]<<8|r_data[6];

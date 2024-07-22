@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <map>
 #include <list>
-
+#include <vector>
 
 
 
@@ -240,6 +240,10 @@ namespace commands{
     //识别到的砝码表
     std::list<point> now_weights_point;
     std::list<int> now_weights_id;
+
+    std::vector<commands::point> ID8Crossbeam_weight;
+    commands::point ID7Crossbeam_weight;
+    std::vector<commands::point> ID6Crossbeam_weight;
     bool get_weight_point(){
         recognition_unit_data datas[6];
         for(int i=11;i<=16;++i){
@@ -266,6 +270,57 @@ namespace commands{
         if(have_weight(datas[5].back_distance)) {now_weights_point.push_back(weight_points[11]);now_weights_id.push_back(11);}
         //如果砝码数量为6个认为识别正确
         if (now_weights_point.size()==6){
+            ID8Crossbeam_weight.clear();
+            ID7Crossbeam_weight={0,0};
+            ID6Crossbeam_weight.clear();
+            auto find_weight=[](int id)->bool{
+                if(std::find(commands::now_weights_id.begin(),commands::now_weights_id.end(),id)!=commands::now_weights_id.end()){
+                    return true;
+                }else{
+                    return false;
+                }
+            };
+            //6号横梁抓取砝码
+            if(find_weight(1)){
+                ID6Crossbeam_weight.push_back(commands::weight_points[1]);
+            }else{
+                ID6Crossbeam_weight.push_back(commands::weight_points[3]);
+            }
+            if(find_weight(11)){
+                ID6Crossbeam_weight.push_back(commands::weight_points[11]);
+            }else{
+                ID6Crossbeam_weight.push_back(commands::weight_points[9]);
+            }
+
+            //确保Y小的在前
+            if(ID6Crossbeam_weight[0].y>ID6Crossbeam_weight[1].y){
+                std::swap(ID6Crossbeam_weight[0],ID6Crossbeam_weight[1]);
+            }
+
+            //8号横梁抓取砝码
+            if(find_weight(2)){
+                ID8Crossbeam_weight.push_back(commands::weight_points[2]);
+            }else{
+                ID8Crossbeam_weight.push_back(commands::weight_points[4]);
+            }
+            if(find_weight(12)){
+                ID8Crossbeam_weight.push_back(commands::weight_points[12]);
+            }else{
+                ID8Crossbeam_weight.push_back(commands::weight_points[10]);
+            }
+            //确保Y小的在前
+            if(ID8Crossbeam_weight[0].y>ID8Crossbeam_weight[1].y){
+                std::swap(ID8Crossbeam_weight[0],ID8Crossbeam_weight[1]);
+            }
+
+            //如果有两个相同的Y,认为该横梁最快抓取，7号就抓该侧砝码
+            if(ID6Crossbeam_weight[0].y==ID6Crossbeam_weight[1].y){
+                ID7Crossbeam_weight=find_weight(5)?commands::weight_points[5]:commands::weight_points[6];
+            }else if(ID8Crossbeam_weight[0].y==ID8Crossbeam_weight[1].y){
+                ID7Crossbeam_weight=find_weight(7)?commands::weight_points[7]:commands::weight_points[8];
+            }else{//默认抓取6号这侧的砝码
+                ID7Crossbeam_weight=find_weight(5)?commands::weight_points[5]:commands::weight_points[6];
+            }
             return true;
         }
         //否则认为识别失败

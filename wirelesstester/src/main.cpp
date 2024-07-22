@@ -51,49 +51,126 @@ int help(int argc = 0, char** argv = NULL) {
 
 }
 
+float ground_hight=3;
+float release_hight=220;
+TaskHandle_t ID6task_handler=nullptr;
+void ID6task(void * pvParameters) {
+  commands::wait(6,'Y');
+  if(commands::ID6Crossbeam_weight[0].y==commands::ID6Crossbeam_weight[1].y){
+    commands::move_to_z(1,ground_hight);
+    commands::move_to_z(2,ground_hight);
+    delay(700);
+    commands::grap(1,0,0);
+    commands::grap(2,0,700);
+    commands::move_to_z(1,release_hight);
+    commands::move_to_z(2,release_hight);
+  }else{
+    int first_id=commands::ID6Crossbeam_weight[0].x>commands::ID6Crossbeam_weight[1].x?1:2;
+    int second_id=first_id==1?2:1;
+    commands::move_to_z(first_id,ground_hight);
+    delay(700);
+    commands::grap(first_id,0,700);
+    commands::move_to_z(first_id,release_hight);
+    delay(200);
+    commands::move_to_y(6,commands::ID6Crossbeam_weight[1].y);
+    commands::wait(6,'Y');
+    commands::move_to_z(second_id,ground_hight);
+    delay(700);
+    commands::grap(second_id,0,700);
+    commands::move_to_z(second_id,release_hight);
+    delay(200);
+  }
+
+  commands::move_to_y(6,245);
+
+  commands::move_to_x(1,1755);
+  commands::move_to_x(2,245);
+  ID6task_handler=nullptr;
+  commands::wait(6,'Y');
+  commands::grap(1,1,0);
+  commands::grap(2,1,0);
+
+  vTaskDelete( NULL );
+}
+TaskHandle_t ID8task_handler=nullptr;
+void ID8task(void * pvParameters) {
+  commands::wait(8,'Y');
+  if(commands::ID8Crossbeam_weight[0].y==commands::ID8Crossbeam_weight[1].y){
+    commands::move_to_z(4,ground_hight);
+    commands::move_to_z(5,ground_hight);
+    delay(700);
+    commands::grap(4,0,0);
+    commands::grap(5,0,700);
+    commands::move_to_z(4,release_hight);
+    commands::move_to_z(5,release_hight);
+  }else{
+    int first_id=commands::ID8Crossbeam_weight[0].x>commands::ID8Crossbeam_weight[1].x?4:5;
+    int second_id=first_id==4?5:4;
+    commands::move_to_z(first_id,ground_hight);
+    delay(700);
+    commands::grap(first_id,0,700);
+    commands::move_to_z(first_id,release_hight);
+    delay(200);
+    commands::move_to_y(8,commands::ID8Crossbeam_weight[1].y);
+    commands::wait(8,'Y');
+    commands::move_to_z(second_id,ground_hight);
+    delay(700);
+    commands::grap(second_id,0,700);
+    commands::move_to_z(second_id,release_hight);
+    delay(200);
+  }
+
+  commands::move_to_x(4,1755);
+  commands::move_to_x(5,245);
+  commands::move_to_y(8,3755);
+  ID8task_handler=nullptr;
+  commands::wait(8,'Y');
+  commands::grap(4,1,0);
+  commands::grap(5,1,0);
+  vTaskDelete( NULL );
+}
+
 TaskHandle_t main_func_handler=nullptr;
 void main_func(void * pvParameters) {
-  commands::grap(1,1);
-  commands::grap(2,1);
-  commands::move_to_z(1,120);
-  commands::move_to_z(2,120);
-  commands::move_to_x(1,1000);
-  commands::move_to_x(2,500);
-  commands::move_to_y(6,2040);
+  commands::all_z_to_height(120);
+  //先启动Y
+  commands::move_to_y(8,commands::ID8Crossbeam_weight[0].y);
+  commands::move_to_y(7,2750);
+  commands::move_to_y(6,commands::ID6Crossbeam_weight[0].y);
 
-
-  commands::wait(6,'Y',1000,5);
-
-  commands::move_to_z(1,5,250,0);
-  delay(1500);
-  commands::move_y(6,-40);
-  delay(300);
-  commands::grap(1,0);
-  commands::move_to_z(1,230);
-  delay(300);
-  commands::move_to_x(1,1755);
-  commands::move_to_x(2,1000);
+  auto get_mini_x=[](std::vector<commands::point> point_list)->float{
+    return point_list[0].x<point_list[1].x?point_list[0].x:point_list[1].x;
+  };
+  auto get_max_x=[](std::vector<commands::point> point_list)->float{
+    return point_list[0].x>point_list[1].x?point_list[0].x:point_list[1].x;
+  };
+  //再启动X
+  commands::move_to_x(1,get_max_x(commands::ID6Crossbeam_weight));
+  commands::move_to_x(2,get_mini_x(commands::ID6Crossbeam_weight));
+  commands::move_to_x(3,commands::ID7Crossbeam_weight.x);
+  commands::move_to_x(4,get_max_x(commands::ID8Crossbeam_weight));
+  commands::move_to_x(5,get_mini_x(commands::ID8Crossbeam_weight));
+  xTaskCreate(ID6task, "ID6task", 2048, NULL, 5, &ID6task_handler);
+  xTaskCreate(ID8task, "ID8task", 2048, NULL, 5, &ID8task_handler);
+  if(commands::ID7Crossbeam_weight.y<2750){
+    while(ID6task_handler!=nullptr){
+      delay(10);
+    }
+  }else{
+    while(ID8task_handler!=nullptr){
+      delay(10);
+    }
+  }
+  commands::move_to_y(7,commands::ID7Crossbeam_weight.y);
+  commands::wait(7,'Y');
+  commands::move_to_z(3,ground_hight);
+  delay(700);
+  commands::grap(3,0,700);
+  commands::move_to_z(3,120);
   delay(500);
-  commands::move_to_y(6,2375+40);
-
-  commands::wait(6,'Y',1000,5);
-  commands::move_to_z(2,5,250,0);
-  delay(1000);
-  commands::move_y(6,-40);
-  delay(500);
-  commands::grap(2,0);
-  commands::move_to_z(2,230);
-  delay(500);
-  commands::move_to_x(2,245);
-  delay(500);
-  commands::move_to_y(6,245);
-  commands::wait(6,'Y',1000,5);
-  commands::grap(1,1);
-  commands::grap(2,1);
-  commands::buzz(6,1);
-  delay(3000);
-  commands::buzz(6,0);
-  delay(500);
+  commands::move_to_y(7,2750);
+  commands::wait(7,'Y');
+  commands::grap(3,1,0);
   main_func_handler=nullptr;
   vTaskDelete(NULL);
 }
@@ -157,7 +234,7 @@ void setup() {
   shell.addCommand(F("enable"), enable);
   //_Id state
   shell.addCommand(F("laser"), laser);
-  
+
   shell.addCommand(F("is_moveing"), is_moveing);
   shell.addCommand(F("set_now"), set_now);
   shell.addCommand(F("read_servo_angle"), read_servo_angle);
@@ -168,7 +245,7 @@ void setup() {
   shell.addCommand(F("setupZ"),setupZ);
 
   shell.addCommand(F("gw"),get_weight);
-  
+
   esp_now_setup();
   digitalWrite(10,0);
   xTaskCreatePinnedToCore(cmd_task, "cmd_task", 2048, NULL, 5, NULL,0);

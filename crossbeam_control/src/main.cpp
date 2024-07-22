@@ -25,16 +25,16 @@ namespace CROSSBEAM {
         for (int i = 0; i < 10; i++){
             int64_t m1=-1*left_motor.read_current_location();
             int64_t m2=right_motor.read_current_location();
-            double dis1=double(m1+m2)*GEARTEETH*2.0*PI/2*double(65535);
-			if (dis1 < 4000 && dis1 >=0) {
-                if(dis1==0 && taget_location_y!=0) {
-                    continue;
-                }
+            dis1=double(m1)*GEARTEETH*2.0*PI/2*double(65535);
+			if (abs(dis1) < 4000) {
+                // if(dis1==0 && taget_location_y!=0) {
+                //     continue;
+                // }
 				return dis1 + DATA.Y_ZERO_POINT;
 			}
             delay(10);
 		}
-        return taget_location_y;
+        return dis1 + DATA.Y_ZERO_POINT;
 
         
     }
@@ -88,7 +88,7 @@ namespace CROSSBEAM {
         return abs(delata)>20;
     }
     void rezero(){
-        if(ID==7) return;
+        // if(ID==7) return;
         
         REZREO_parameter pa;
         pa.mode=2;
@@ -117,7 +117,7 @@ namespace EspnowCallback {
         esp_now_send_package(package_type_response,redata.id,"online_test",redata.data,redata.data_len,receive_MACAddress);
     };
     void rezero(data_package redata){
-        esp_now_send_package(package_type_response,redata.id,"rezero",nullptr,0,receive_MACAddress);
+        esp_now_send_package(package_type_response,redata.id,"auto_rezero",nullptr,0,receive_MACAddress);
         CROSSBEAM::rezero();
     }
     void move_to_y(data_package redata){
@@ -207,7 +207,8 @@ void setup() {
     // DATA.ID=8;
     // DATA.write();
     ID=DATA.ID;
-
+    // DATA.offset_dir=-1;
+    // DATA.write();
 
 
     esp_now_setup();

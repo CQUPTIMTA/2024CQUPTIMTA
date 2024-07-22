@@ -442,10 +442,13 @@ void setup() {
   //从NVS中读取数据,实现代码的复用
   GrapUnit::DATA.setup();
   GrapUnit::DATA.read();
+
   // delay(10);
-  // GrapUnit::DATA.grap_servo_close=204;
-  // GrapUnit::DATA.grap_servo_open=141;
-  // // GrapUnit::DATA.ID=1;
+  // GrapUnit::DATA.grap_servo_close=195;
+  // GrapUnit::DATA.grap_servo_open=139;
+  // // GrapUnit::DATA.ID=5;
+  // // GrapUnit::DATA.offset_dir=-1;
+  // // GrapUnit::DATA.Zdirection=-1;
   // GrapUnit::DATA.write();
   //初始化引脚
   PINSetup();
@@ -478,8 +481,8 @@ void loop() {
   // GrapUnit::grap(1);
   // delay(2000);
   // GrapUnit::grap(0);
-  // Serial.println(GrapUnit::grap_servo.SERVO_ANGLE_READ());
-  // Serial.println(GrapUnit::DATA.ID);
+  //Serial.println(GrapUnit::grap_servo.SERVO_ANGLE_READ());
+  //Serial.println(GrapUnit::DATA.offset_dir);
   // Serial.println(GrapUnit::DATA.grap_servo_close);
   // Serial.println(GrapUnit::DATA.grap_servo_open);
   //delay(2000);
