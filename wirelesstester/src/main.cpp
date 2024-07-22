@@ -147,7 +147,7 @@ void main_func(void * pvParameters) {
   //再启动X
   commands::move_to_x(1,get_max_x(commands::ID6Crossbeam_weight));
   commands::move_to_x(2,get_mini_x(commands::ID6Crossbeam_weight));
-  commands::move_to_x(3,commands::ID7Crossbeam_weight.x);
+  //commands::move_to_x(3,commands::ID7Crossbeam_weight.x);
   commands::move_to_x(4,get_max_x(commands::ID8Crossbeam_weight));
   commands::move_to_x(5,get_mini_x(commands::ID8Crossbeam_weight));
   xTaskCreate(ID6task, "ID6task", 2048, NULL, 5, &ID6task_handler);
