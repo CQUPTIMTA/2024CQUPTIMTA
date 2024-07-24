@@ -6,3 +6,4 @@
 ## 控制层级
 ![image](https://github.com/user-attachments/assets/78652727-fb97-488c-9aab-ff25033e6de5)
 ## 代码架构
+![image](https://github.com/user-attachments/assets/650994c0-90d9-4dff-b0b5-e295c588f871)
