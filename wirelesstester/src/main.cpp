@@ -51,15 +51,21 @@ int help(int argc = 0, char** argv = NULL) {
 
 }
 
+
+
+
 float ground_hight=3;
 float release_hight=220;
+float safe_distance=40;
 TaskHandle_t ID6task_handler=nullptr;
 void ID6task(void * pvParameters) {
   commands::wait(6,'Y');
   if(commands::ID6Crossbeam_weight[0].y==commands::ID6Crossbeam_weight[1].y){
     commands::move_to_z(1,ground_hight);
     commands::move_to_z(2,ground_hight);
-    delay(700);
+    commands::wait(1,'Z');
+    commands::move_y(6,-1*safe_distance);
+    commands::wait(6,'Y');
     commands::grap(1,0,0);
     commands::grap(2,0,700);
     commands::move_to_z(1,release_hight);
@@ -67,26 +73,33 @@ void ID6task(void * pvParameters) {
   }else{
     int first_id=commands::ID6Crossbeam_weight[0].x>commands::ID6Crossbeam_weight[1].x?1:2;
     int second_id=first_id==1?2:1;
+    //先抓第一个
     commands::move_to_z(first_id,ground_hight);
-    delay(700);
+    commands::wait(first_id,'Z');
+    commands::move_y(6,-1*safe_distance);
+    commands::wait(6,'Y');
     commands::grap(first_id,0,700);
     commands::move_to_z(first_id,release_hight);
     delay(200);
-    commands::move_to_y(6,commands::ID6Crossbeam_weight[1].y);
+    //再抓第二个
+    commands::move_to_y(6,commands::ID6Crossbeam_weight[1].y+safe_distance);
     commands::wait(6,'Y');
     commands::move_to_z(second_id,ground_hight);
-    delay(700);
+    commands::wait(second_id,'Z');
+    commands::move_y(6,-1*safe_distance);
+    commands::wait(6,'Y');
     commands::grap(second_id,0,700);
     commands::move_to_z(second_id,release_hight);
     delay(200);
   }
 
   commands::move_to_y(6,245);
-
+  ID6task_handler=nullptr;
   commands::move_to_x(1,1755);
   commands::move_to_x(2,245);
-  ID6task_handler=nullptr;
+  
   commands::wait(6,'Y');
+  delay(500);//等砝码稳定
   commands::grap(1,1,0);
   commands::grap(2,1,0);
 
@@ -98,7 +111,9 @@ void ID8task(void * pvParameters) {
   if(commands::ID8Crossbeam_weight[0].y==commands::ID8Crossbeam_weight[1].y){
     commands::move_to_z(4,ground_hight);
     commands::move_to_z(5,ground_hight);
-    delay(700);
+    commands::wait(4,'Z');
+    commands::move_y(8,-1*safe_distance);
+    commands::wait(8,'Y');
     commands::grap(4,0,0);
     commands::grap(5,0,700);
     commands::move_to_z(4,release_hight);
@@ -106,16 +121,23 @@ void ID8task(void * pvParameters) {
   }else{
     int first_id=commands::ID8Crossbeam_weight[0].x>commands::ID8Crossbeam_weight[1].x?4:5;
     int second_id=first_id==4?5:4;
+    //抓第一个
     commands::move_to_z(first_id,ground_hight);
-    delay(700);
+    commands::wait(first_id,'Z');
+    commands::move_y(8,-1*safe_distance);
+    commands::wait(8,'Y');
     commands::grap(first_id,0,700);
     commands::move_to_z(first_id,release_hight);
-    delay(200);
-    commands::move_to_y(8,commands::ID8Crossbeam_weight[1].y);
+    
+    //抓第二个
+    commands::move_to_y(8,commands::ID8Crossbeam_weight[1].y+safe_distance);
     commands::wait(8,'Y');
     commands::move_to_z(second_id,ground_hight);
-    delay(700);
+    commands::wait(second_id,'Z');
+    commands::move_y(8,-1*safe_distance);
+    commands::wait(8,'Y');
     commands::grap(second_id,0,700);
+
     commands::move_to_z(second_id,release_hight);
     delay(200);
   }
@@ -125,6 +147,7 @@ void ID8task(void * pvParameters) {
   commands::move_to_y(8,3755);
   ID8task_handler=nullptr;
   commands::wait(8,'Y');
+  delay(500);//等砝码稳定
   commands::grap(4,1,0);
   commands::grap(5,1,0);
   vTaskDelete( NULL );
@@ -132,11 +155,17 @@ void ID8task(void * pvParameters) {
 
 TaskHandle_t main_func_handler=nullptr;
 void main_func(void * pvParameters) {
+  commands::ID6Crossbeam_weight.push_back(commands::weight_points[1]);
+  commands::ID6Crossbeam_weight.push_back(commands::weight_points[11]);
+  commands::ID7Crossbeam_weight=commands::weight_points[6];
+  commands::ID8Crossbeam_weight.push_back(commands::weight_points[2]);
+  commands::ID8Crossbeam_weight.push_back(commands::weight_points[12]);
+
   commands::all_z_to_height(120);
   //先启动Y
-  commands::move_to_y(8,commands::ID8Crossbeam_weight[0].y);
+  commands::move_to_y(8,commands::ID8Crossbeam_weight[0].y+safe_distance);
   commands::move_to_y(7,2750);
-  commands::move_to_y(6,commands::ID6Crossbeam_weight[0].y);
+  commands::move_to_y(6,commands::ID6Crossbeam_weight[0].y+safe_distance);
 
   auto get_mini_x=[](std::vector<commands::point> point_list)->float{
     return point_list[0].x<point_list[1].x?point_list[0].x:point_list[1].x;
@@ -161,16 +190,30 @@ void main_func(void * pvParameters) {
       delay(10);
     }
   }
-  commands::move_to_y(7,commands::ID7Crossbeam_weight.y);
+  //移动到砝码安全距离
+  commands::move_to_y(7,commands::ID7Crossbeam_weight.y+safe_distance);
   commands::wait(7,'Y');
   commands::move_to_z(3,ground_hight);
-  delay(700);
-  commands::grap(3,0,700);
+  commands::wait(3,'Z');
+  commands::move_y(7,-1*safe_distance);
+  commands::wait(7,'Y');
+
+  commands::grap(3,0,700);//抓取
   commands::move_to_z(3,120);
   delay(500);
   commands::move_to_y(7,2750);
   commands::wait(7,'Y');
+  delay(500);//等砝码稳定
   commands::grap(3,1,0);
+  
+  //执行完毕,蜂鸣器响
+  commands::buzz(6,1);
+  commands::buzz(7,1);
+  commands::buzz(8,1);
+  delay(4000);
+  commands::buzz(6,0);
+  commands::buzz(7,0);
+  commands::buzz(8,0);
   main_func_handler=nullptr;
   vTaskDelete(NULL);
 }

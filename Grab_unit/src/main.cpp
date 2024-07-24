@@ -173,6 +173,7 @@ namespace GrapUnit{
       now=Z_motor.read_current_location();
       xSemaphoreGive(motorMutex);//释放互斥锁
     }
+    if(taget==0&&now==0) return true;
     float delta=abs(taget-now);
     return delta>10000?true:false;
   }

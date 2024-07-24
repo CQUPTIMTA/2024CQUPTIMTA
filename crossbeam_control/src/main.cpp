@@ -25,18 +25,16 @@ namespace CROSSBEAM {
         for (int i = 0; i < 10; i++){
             int64_t m1=-1*left_motor.read_current_location();
             int64_t m2=right_motor.read_current_location();
-            dis1=double(m1)*GEARTEETH*2.0*PI/2*double(65535);
+            dis1=(m1+m2)*GEARTEETH*2.0*PI/(2*double(65535));
 			if (abs(dis1) < 4000) {
                 // if(dis1==0 && taget_location_y!=0) {
                 //     continue;
                 // }
-				return dis1 + DATA.Y_ZERO_POINT;
+				return dis1+ DATA.Y_ZERO_POINT;
 			}
             delay(10);
 		}
-        return dis1 + DATA.Y_ZERO_POINT;
-
-        
+        return taget_location_y;
     }
     //现在的Y位置,单位是mm
     void set_now_location_y(float y) {
@@ -207,7 +205,7 @@ void setup() {
     // DATA.ID=8;
     // DATA.write();
     ID=DATA.ID;
-    // DATA.offset_dir=-1;
+    // DATA.offset_dir=0;
     // DATA.write();
 
 
@@ -218,19 +216,22 @@ void setup() {
     setup_pins();
 
     digitalWrite(17,1);
-    delay(5000);
+    delay(3000);
     digitalWrite(17,0);
 }
 
 void loop() {
     delay(1000);
+    
     Serial.println(ID);
     for (int i = 0; i < DATA.ID; i++){
+        
         digitalWrite(17,1);
         delay(300);
         digitalWrite(17,0);
         delay(300);
     }
+    //Serial.println(CROSSBEAM::get_now_location_y());
 
 
 }

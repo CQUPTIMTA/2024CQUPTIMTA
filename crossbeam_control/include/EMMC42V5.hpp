@@ -974,18 +974,20 @@ public:
             //     return 0;
             //     break;
             default: //成功
-                                while(serial->available()>4){//等待数据
-                        delay(1);
-                    }
+                int time=0;
+                while(serial->available()>4&&time<100){//等待数据
+                    delay(1);
+                    time++;
+                }
                 for (int i = 4; i < 8; i++){
 
                     r_data[i]=serial->read();
                 }
-                int64_t rdata = r_data[3]<<24|r_data[4]<<16|r_data[5]<<8|r_data[6];
+                int64_t data = (r_data[3]<<24)+(r_data[4]<<16)+(r_data[5]<<8)+r_data[6];
                 if(r_data[2] == 0x01){
-                    rdata = -rdata;
+                    data = -data;
                 }
-                return rdata;
+                return data;
         };
     };
     int64_t read_location_error(bool need_retry=false){

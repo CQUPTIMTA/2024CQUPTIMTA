@@ -122,7 +122,7 @@ namespace commands{
         receive_datas.erase("move_to_y");
         return ;
     }
-    void move_z(int id ,float point,int speed=250,int acce=220){
+    void move_z(int id ,float point,int speed=1000,int acce=250){
         uint8_t data[12];
         float _point=point;
         float _speed=speed;
@@ -135,7 +135,7 @@ namespace commands{
         receive_datas.erase("move_z");
         return ;
     }
-    void move_to_z(int id ,float point,int speed=250,int acce=220,bool need_wait=true){
+    void move_to_z(int id ,float point,int speed=1000,int acce=250,bool need_wait=true){
         uint8_t data[12];
         float _point=point;
         float _speed=speed;
@@ -328,22 +328,24 @@ namespace commands{
     }
 
     void all_z_to_height(float height){
+        Serial.println("all_z_to_height");
         for(int i=1;i<=5;++i){
             commands::move_to_z(i,height);
         }
     }
     void all_x_y_to_setup_point(){
+        Serial.println("all_x_y_to_setup_point");
         move_to_y(6,1000);
         move_to_y(7,1550);
         move_to_y(8,2100);
-        move_to_x(1,1500);
-        move_to_x(2,500);
+        move_to_x(1,1487);
+        move_to_x(2,513);
         move_to_x(3,1000);
-        move_to_x(4,1500);
-        move_to_x(5,500);
+        move_to_x(4,1487);
+        move_to_x(5,513);
     }
     void all_x_y_to_release_point(){
-
+        Serial.println("all_x_y_to_release_point");
         move_to_y(6,245);
         move_to_y(7,2750);
         move_to_y(8,3755);
@@ -355,6 +357,7 @@ namespace commands{
         move_to_x(5,245);
     }
     void all_laser(bool state){
+        Serial.println("all_laser");
         for(int i=1;i<=5;++i){
             commands::laser(i,state);
         }

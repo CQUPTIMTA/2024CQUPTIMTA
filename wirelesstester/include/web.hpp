@@ -160,10 +160,10 @@ void handleData(){
     }else if (func=="All_Z"){
       String state=doc["state"];
       if(state=="true"){
-        commands::all_z_to_height(230);
+        commands::all_z_to_height(220);
       }
       else{
-        commands::all_z_to_height(0);
+        commands::all_z_to_height(5);
       }
     }else if (func=="ALL_TO_START"){
       commands::all_x_y_to_setup_point();
@@ -192,7 +192,7 @@ void handleData(){
       }
     } else if (func=="MIAN_FUNC"){
       if(main_func_handler==nullptr){
-        xTaskCreatePinnedToCore(main_func, "test", 4096, NULL, 5, &main_func_handler,1);
+        xTaskCreatePinnedToCore(main_func, "main_func", 4096, NULL, 5, &main_func_handler,1);
       }
     }
 
