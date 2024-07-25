@@ -177,8 +177,8 @@ void main_func(void * pvParameters) {
   //commands::move_to_x(3,commands::ID7Crossbeam_weight.x);
   commands::move_to_x(4,get_max_x(commands::ID8Crossbeam_weight));
   commands::move_to_x(5,get_mini_x(commands::ID8Crossbeam_weight));
-  xTaskCreate(ID6task, "ID6task", 2048, NULL, 5, &ID6task_handler);
-  xTaskCreate(ID8task, "ID8task", 2048, NULL, 5, &ID8task_handler);
+  xTaskCreate(ID6task, "ID6task", 4096, NULL, 5, &ID6task_handler);
+  xTaskCreate(ID8task, "ID8task", 4096, NULL, 5, &ID8task_handler);
   if(commands::ID7Crossbeam_weight.y<2750){
     while(ID6task_handler!=nullptr){
       delay(10);
@@ -219,7 +219,7 @@ void main_func(void * pvParameters) {
 
 int main_func_task(int argc = 0, char** argv = NULL) {
   if(main_func_handler!=nullptr){
-    xTaskCreatePinnedToCore(main_func, "main_task", 16384, NULL, 5, &main_func_handler,1);
+    xTaskCreatePinnedToCore(main_func, "main_task", 4096, NULL, 5, &main_func_handler,1);
   }
   return 0;
 }
@@ -292,8 +292,8 @@ void setup() {
 
   esp_now_setup();
   digitalWrite(LED,0);
-  xTaskCreatePinnedToCore(cmd_task, "cmd_task", 2048, NULL, 5, NULL,0);
-  xTaskCreatePinnedToCore(web_task, "web_task", 4096, NULL, 4, NULL,1);
+  xTaskCreatePinnedToCore(cmd_task, "cmd_task", 4096, NULL, 5, NULL,0);
+  xTaskCreatePinnedToCore(web_task, "web_task", 8182, NULL, 4, NULL,1);
 
 }
 

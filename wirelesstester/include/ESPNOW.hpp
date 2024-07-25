@@ -182,14 +182,14 @@ void esp_now_send_package(package_type type,int _id,String name,uint8_t* data,in
   if(receive_MAC==receive_MACAddress){
     if(auto i=receive_MACs.find(_id)!=receive_MACs.end()){
       receive_MAC=receive_MACs[_id];
-      Serial.println("find mac");
+      // Serial.println("find mac");
     }
   }
   //发送
   for(int i=0;i<MAX_RETRY;i++){
     auto err = esp_now_send(receive_MAC,send_data_array,send_data.get_len());
     if (err == ESP_OK)  break;
-    delay(50);
+    delay(20);
   }
 }
 

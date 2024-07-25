@@ -103,14 +103,13 @@ void handleData(){
     }else if(func=="rezero"){
         commands::rezero(id);
     }else if(func=="load"){
-      if(doc["state"]=="true"){
-        commands::enable(id,'X',true);
-        commands::enable(id,'Z',true);
-        commands::enable(id,'G',true);
+      bool state= doc["state"]=="true"?1:0;
+      if(id<6){
+        commands::enable(id,'X',state);
+        commands::enable(id,'Z',state);
+        commands::enable(id,'G',state);
       }else{
-        commands::enable(id,'X',false);
-        commands::enable(id,'Z',false);
-        commands::enable(id,'G',false);
+        commands::enable(id,'Y',state);
       }
     }else if(func=="move_to_axis"){
         Serial.println("move_to_axis");
