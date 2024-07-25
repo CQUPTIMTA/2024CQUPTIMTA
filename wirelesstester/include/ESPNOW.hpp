@@ -121,7 +121,7 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
     esp_now_add_peer(&peerInfo);
   }
 
-  //存入成功执行的动作
+  //存入成功执行的动作,未使用该功能，但是屎山勿动
   if(String(re_data.name,re_data.name_len)=="action_complete"){
     susscess_actions[re_data.id]=String((char*)re_data.data);
     return ;

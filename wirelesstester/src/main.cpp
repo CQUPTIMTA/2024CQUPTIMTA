@@ -15,7 +15,6 @@ void add_help(){
   help_map["getZ"]=F("getZ <id>");
   help_map["getX"]=F("getX <id>");
   help_map["getVoltage"]=F("getVoltage <id>");
-  help_map["getSensor"]=F("getSensor <id>");
   help_map["move_to_x"]=F("move_to_x <id> <point> <speed> <acceleration>");
   help_map["move_to_y"]=F("move_to_y <id> <point> <speed> <acceleration>");
   help_map["move_to_z"]=F("move_to_z <id> <point> <speed> <acceleration>");
@@ -248,7 +247,6 @@ void add_shell_commands() {
   shell.addCommand(F("getZ"),get_z);
   shell.addCommand(F("getX"),get_x);
   shell.addCommand(F("getVoltage"),get_voltage);
-  shell.addCommand(F("getSensor"),get_sensor);
 
   //_Id point speed acceleration
   shell.addCommand(F("move_to_x"),move_to_x);

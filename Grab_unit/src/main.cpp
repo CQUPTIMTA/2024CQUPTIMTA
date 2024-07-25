@@ -1,5 +1,4 @@
 #include "ESP32FLASHEEPROM.hpp"
-#include "SENSOR.hpp"
 #include "EMMC42V5.hpp"
 #include "RTOSSERVO.hpp"
 #include "ESPNOW.hpp"
@@ -9,11 +8,7 @@
 int ID=0;
 // 控制相关函数
 namespace GrapUnit{
-  // //高度超声波
-  SENSOR high_sensor(37,38,false,3);
-  // // X轴和Z轴超声波
-  SENSOR Y_sensor(14,21,false,10);     
-  SENSOR X_sensor(47,48,false,10);
+
   //电机串口
   HardwareSerial motor_ser=HardwareSerial(2);
   //舵机串口
@@ -39,24 +34,6 @@ namespace GrapUnit{
     }else{
         grap_servo.SERVO_MOVE_TIME_WRITE(DATA.grap_servo_close,0);
     }
-  }
-  //将X Y轴的测量超声波收起来
-  void get_XY_back(){
-    X_servo.SERVO_MOVE_TIME_WRITE(240*830/1000,0);
-    Y_servo.SERVO_MOVE_TIME_WRITE(240*240/1000,0);
-  }
-  void get_XY_centrol(){
-    //需要按照需求调整下降高度
-    X_servo.SERVO_MOVE_TIME_WRITE(240*344/1000,0);
-    Y_servo.SERVO_MOVE_TIME_WRITE(240*719/1000,0);
-  }
-  void get_XY_measure(){
-    get_XY_centrol();
-    while(abs(X_sensor.get_distance_mm()-Y_sensor.get_distance_mm())<=10){
-      //操作X轴，Y轴的步进电机进行调整、直到测量误差值小于10mm
-    }
-    delay(1000);
-    get_XY_back();
   }
 
   //归零
@@ -118,6 +95,7 @@ namespace GrapUnit{
         wait_to_x(x);
     }
   }
+  //无限位归零
   void rezero_Z(){
     REZREO_parameter pa;
     pa.mode=2;
@@ -131,8 +109,25 @@ namespace GrapUnit{
     Z_motor.change_parameter(0,0,pa);
     delay(300);
     Z_motor.re_zero(2);
-
   }
+
+  // //有限位Z归零
+  // void rezero_Z(){
+  //   Z_motor.speed_control(60*DATA.Zdirection,0);
+  //   while(digitalRead(37)){
+  //     delay(1);
+  //   }
+  //   Z_motor.pulse_control(-256*1*DATA.Zdirection,30);
+  //   delay(1000);
+  //   Z_motor.speed_control(3*DATA.Zdirection,0);
+  //   while(digitalRead(37)){
+  //     delay(1);
+  //   }
+  //   Z_motor.speed_control(0,0);
+  //   Z_motor.angle_reset();
+  // }
+
+
   /* 获取Z轴当前高度         */
   float get_location_z(){
     xSemaphoreTake(motorMutex, portMAX_DELAY);
@@ -177,34 +172,11 @@ namespace GrapUnit{
     float delta=abs(taget-now);
     return delta>10000?true:false;
   }
-  //实时超声波距离更新
-  void update_sensor(void* p){
-    while(1){
-      high_sensor.update();
-      X_sensor.update();
-      Y_sensor.update();
-      delay(20);
-    }
-  }
 
   //更新LED状态
   void led_update(void* p){
     while(1){
-      if(high_sensor.get_distance_mm(false)!=0){
-        digitalWrite(6,1);
-      }else{
-        digitalWrite(6,0);
-      }
-      if(X_sensor.get_distance_mm(false)!=0){
-        digitalWrite(5,1);
-      }else{
-        digitalWrite(5,0);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-      }
-      if(Y_sensor.get_distance_mm(false)!=0){
-        digitalWrite(4,1);
-      }else{
-        digitalWrite(4,0);
-      }
+      digitalWrite(6,!digitalRead(37));//Z微动
       if(grap_servo.SERVO_TEMP_READ()<70 &&grap_servo.SERVO_TEMP_READ()!=0){
         digitalWrite(18,1);
       }else{
@@ -318,19 +290,7 @@ namespace EspnowCallback{
     GrapUnit::grap(flag);
     esp_now_send_package(package_type_response,redata.id,"grap",nullptr,0,receive_MACAddress);
   }
-  //获取X Y Z轴的超声波测得的距离
-  void get_sensor_distance(data_package redata){
-    char name=redata.data[0];
-    float distance=0;
-    if(name=='X'){
-      distance=GrapUnit::X_sensor.get_distance_mm();
-    }else if(name=='Y'){
-      distance=GrapUnit::Y_sensor.get_distance_mm();
-    }else if(name=='Z'){
-      distance=GrapUnit::high_sensor.get_distance_mm();
-    }
-    esp_now_send_package(package_type_response,redata.id,"get_sensor_distance",(uint8_t*)&distance,4,receive_MACAddress);
-  }
+
   //获取电机电压
   void get_voltage(data_package redata){
     float voltage=GrapUnit::X_motor.read_Bus_voltage()/1000.0;
@@ -404,7 +364,6 @@ namespace EspnowCallback{
     callback_map["set_zero_point"]=set_zero_point;
     callback_map["laser"]=laser;
     callback_map["grap"]=grap;
-    callback_map["get_sensor_distance"]=get_sensor_distance;
     callback_map["get_voltage"]=get_voltage;
     callback_map["set_now_location"]=set_now_location;
     callback_map["get_x"]=get_x;
@@ -429,6 +388,7 @@ void PINSetup(){
   pinMode(17,OUTPUT);
   pinMode(18,OUTPUT);
   pinMode(11,INPUT_PULLDOWN);
+  pinMode(37,INPUT_PULLUP);
   pinMode(laser_pin,OUTPUT_OPEN_DRAIN);
   digitalWrite(laser_pin,HIGH);
   attachInterrupt(11,GrapUnit::IO11interrupt,CHANGE);
@@ -437,35 +397,22 @@ void setup() {
   Serial.begin(115200);
   GrapUnit::motor_ser.begin(115200,SERIAL_8N1,10,9);
   GrapUnit::servo_ser.begin(115200,SERIAL_8N1,35,36);
-  GrapUnit::high_sensor.setup();
-  GrapUnit::X_sensor.setup();
-  GrapUnit::Y_sensor.setup();
   //从NVS中读取数据,实现代码的复用
   GrapUnit::DATA.setup();
   GrapUnit::DATA.read();
 
-  // delay(10);
-  // GrapUnit::DATA.grap_servo_close=195;
-  // GrapUnit::DATA.grap_servo_open=139;
-  // // GrapUnit::DATA.ID=5;
-  // // GrapUnit::DATA.offset_dir=-1;
-  // // GrapUnit::DATA.Zdirection=-1;
-  // GrapUnit::DATA.write();
   //初始化引脚
   PINSetup();
   /*无线控制部分*/
   EspnowCallback::add_callbacks();
   esp_now_setup();
   ID=GrapUnit::DATA.ID; 
-  /*一些任务*/
-  //xTaskCreatePinnedToCore(GrapUnit::update_sensor,"update_sensor",2048,NULL,2,NULL,1);
   //指示灯更新任务
   xTaskCreatePinnedToCore(GrapUnit::led_update,"led_update",2048,NULL,3,NULL,1);
   //舵机高温保护
   //xTaskCreatePinnedToCore(GrapUnit::Servo_temperature_read,"Servo_protect",2048,NULL,1,NULL,1);
   delay(3000);
-  GrapUnit::grap_servo.SERVO_LOAD_OR_UNLOAD_WRITE(0);
-  delay(200);
+  GrapUnit::grap(1);
   GrapUnit::rezero_Z();
 }
 
@@ -476,16 +423,7 @@ void loop() {
     digitalWrite(7,0);
     delay(300);
   }
-  // GrapUnit::get_close();
   delay(1000);
-  // GrapUnit::get_open();
-  // GrapUnit::grap(1);
-  // delay(2000);
-  // GrapUnit::grap(0);
-  //Serial.println(GrapUnit::grap_servo.SERVO_ANGLE_READ());
-  //Serial.println(GrapUnit::DATA.offset_dir);
-  // Serial.println(GrapUnit::DATA.grap_servo_close);
-  // Serial.println(GrapUnit::DATA.grap_servo_open);
-  //delay(2000);
+
 }
 
