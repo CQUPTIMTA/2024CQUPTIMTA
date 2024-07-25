@@ -117,6 +117,7 @@ const char* testhtml = R"rawliteral(
     <div class="warp">
         <button onclick="window.location.href='/rec'">识别</button>
         <button onclick="window.location.href='/'">主页面</button>
+        <button onclick="window.location.href='/cali'">校准</button>
     </div>
     <div class="container1">
         <button onclick="test_func()">测试</button>

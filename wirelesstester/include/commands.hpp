@@ -217,6 +217,13 @@ namespace commands{
         receive_datas.erase("laser");
         return ;
     }
+    void set_now(int id,float point){
+        float _point=point;
+        esp_now_send_package(package_type_request,id,"set_now_location",(uint8_t*)&_point,4);
+        if(wait_package("set_now_location")) return ;
+        receive_datas.erase("set_now_location");
+        return ;
+    }
 
     struct point{
         float x;
@@ -968,7 +975,7 @@ int set_now(int argc, char** args){
     }
     esp_now_send_package(package_type_request,_id,"set_now_location",(uint8_t*)&pra,4);
     if(wait_package("set_now_location")) return 0;
-    receive_datas.erase("set_now");
+    receive_datas.erase("set_now_location");
     shell.println(F("set now success"));
     return 0;
 }

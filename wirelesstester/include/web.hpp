@@ -14,6 +14,7 @@
 #include "roothtml.hpp"
 #include "rechtml.hpp"
 #include "testhtml.hpp"
+#include "calihtml.hpp"
 #define WIFI_SSID "CQUPTIMTA2"        //WiFi名称
 #define WIFI_PASSWORD "znzzjsxh"                 //WiFi密码
 
@@ -49,6 +50,9 @@ void handletest(){
 }
 void handlerec(){
     server.send(200, "text/html", rechtml);
+}
+void handlecali(){
+    server.send(200, "text/html", calihtml);
 }
 void handleData(){
     
@@ -121,6 +125,22 @@ void handleData(){
         }else if(axis==(String)'Z'){
           commands::move_to_z(id,point_float);
         }
+    }else if(func=="move_axis"){
+        Serial.println("move_axis");
+        String axis=doc["axis"];
+        Serial.println(axis);
+        String point=doc["value"];
+        float point_float=point.toFloat();
+        if(axis==(String)'X'){
+          commands::move_x(id,point_float);
+        }else if(axis==(String)'Y'){
+          commands::move_y(id,point_float);
+        }else if(axis==(String)'Z'){
+          commands::move_z(id,point_float);
+        }
+    }else if(func=="set_now"){
+        float point=doc["value"];
+        commands::set_now(id,point);
     }else if(func=="laser"){
         String state=doc["state"];
         commands::laser(id,state=="true");
@@ -190,7 +210,7 @@ void handleData(){
       }else{
         commands::all_grap(false);
       }
-    } else if (func=="MIAN_FUNC"){
+    }else if (func=="MIAN_FUNC"){
       if(main_func_handler==nullptr){
         xTaskCreatePinnedToCore(main_func, "main_func", 4096, NULL, 5, &main_func_handler,1);
       }
@@ -202,10 +222,10 @@ void web_setup(){
     WiFi.softAP(WIFI_SSID, WIFI_PASSWORD);
     // 获取wifi访问点的IP地址
     IPAddress apIP = WiFi.softAPIP();
-    // 启动DNS服务器，将所有域名解析到wifi访问点的IP地址，实现重定向功能
-    server.on("/rec", handlerec); // 根目录请求
-    server.on("/test", handletest); // 根目录请求
-    server.on("/", handleRoot); // 根目录请求
+    server.on("/rec", handlerec);
+    server.on("/test", handletest);
+    server.on("/", handleRoot); 
+    server.on("/cali",handlecali);
     server.on("/data",handleData);//处理请求
     server.on("/favicon.ico",[]{});
     server.onNotFound(handleNotFound); // 其他不存在的请求

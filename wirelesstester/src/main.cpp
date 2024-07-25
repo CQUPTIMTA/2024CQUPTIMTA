@@ -7,8 +7,6 @@
 
 #include "commands.hpp"
 #include "web.hpp"
-
-
 void add_help(){
   help_map["clear"]=F("clear");
   help_map["info"]=F("info");
@@ -54,7 +52,7 @@ int help(int argc = 0, char** argv = NULL) {
 
 
 
-float ground_hight=3;
+float ground_hight=10;
 float release_hight=220;
 float safe_distance=40;
 TaskHandle_t ID6task_handler=nullptr;
@@ -99,7 +97,7 @@ void ID6task(void * pvParameters) {
   commands::move_to_x(2,245);
   
   commands::wait(6,'Y');
-  delay(500);//等砝码稳定
+  delay(2000);//等砝码稳定
   commands::grap(1,1,0);
   commands::grap(2,1,0);
 
@@ -147,7 +145,7 @@ void ID8task(void * pvParameters) {
   commands::move_to_y(8,3755);
   ID8task_handler=nullptr;
   commands::wait(8,'Y');
-  delay(500);//等砝码稳定
+  delay(2000);//等砝码稳定
   commands::grap(4,1,0);
   commands::grap(5,1,0);
   vTaskDelete( NULL );
@@ -203,7 +201,7 @@ void main_func(void * pvParameters) {
   delay(500);
   commands::move_to_y(7,2750);
   commands::wait(7,'Y');
-  delay(500);//等砝码稳定
+  delay(1000);//等砝码稳定
   commands::grap(3,1,0);
   
   //执行完毕,蜂鸣器响
@@ -239,14 +237,7 @@ void web_task(void * pvParameters) {
   }
 }
 
-void setup() {
-  Serial.begin(115200);
-  pinMode(10,OUTPUT);
-  digitalWrite(10,1);
-  delay(1000);
-  add_help();
-  //pinMode(10,OUTPUT);
-  //digitalWrite(10,1);
+void add_shell_commands() {
   shell.attach(Serial);
   shell.addCommand(F("help"),help);
   //_id
@@ -288,11 +279,22 @@ void setup() {
   shell.addCommand(F("setupZ"),setupZ);
 
   shell.addCommand(F("gw"),get_weight);
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED,OUTPUT);
+  digitalWrite(LED,1);
+  delay(1000);
+
+  add_help();
+  add_shell_commands();
 
   esp_now_setup();
-  digitalWrite(10,0);
+  digitalWrite(LED,0);
   xTaskCreatePinnedToCore(cmd_task, "cmd_task", 2048, NULL, 5, NULL,0);
   xTaskCreatePinnedToCore(web_task, "web_task", 4096, NULL, 4, NULL,1);
+
 }
 
 void loop() {

@@ -7,6 +7,7 @@ const char* rechtml = R"rawliteral(
 
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,6 +24,7 @@ const char* rechtml = R"rawliteral(
             height: 100vh;
             flex-direction: row;
         }
+
         .container {
             position: relative;
             width: 55vw;
@@ -31,26 +33,31 @@ const char* rechtml = R"rawliteral(
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
             border-radius: 5%;
         }
+
         .circle {
             position: absolute;
             width: 5%;
             height: 5%;
             background-color: white;
             border-radius: 50%;
-            display: flex; 
-            justify-content: 
-            center; align-items: center;
+            display: flex;
+            justify-content:
+                center;
+            align-items: center;
             font-size: 16;
             color: black;
         }
-        .unit_text{
+
+        .unit_text {
             position: absolute;
-            display: flex; 
-            justify-content: 
-            center; align-items: center;
+            display: flex;
+            justify-content:
+                center;
+            align-items: center;
             font-size: 16;
             color: red;
         }
+
         .zero-circle {
             width: 10%;
             height: 10%;
@@ -65,6 +72,7 @@ const char* rechtml = R"rawliteral(
             margin-right: 20px;
             font-size: 14px;
         }
+
         .unit {
             background-color: #ffffff;
             border-radius: 10px;
@@ -75,6 +83,7 @@ const char* rechtml = R"rawliteral(
             height: 9vh;
             margin-bottom: 5px;
         }
+
         .warp {
             display: flex;
             flex-direction: column;
@@ -82,6 +91,7 @@ const char* rechtml = R"rawliteral(
             height: 30vh;
             margin-right: 20px;
         }
+
         button {
             background-color: #4CAF50;
             color: white;
@@ -98,21 +108,24 @@ const char* rechtml = R"rawliteral(
         button:hover {
             background-color: #45a049;
         }
-        .rectangle{
+
+        .rectangle {
             position: absolute;
             width: 5%;
             height: 5%;
             background-color: rgb(236, 197, 106);
             border-radius: 10%;
-            
+
         }
     </style>
 </head>
+
 <body>
     <div class="warp">
         <button onclick="window.location.href='/'">主页面</button>
         <button onclick="test()">更新数据</button>
-        <button onclick="window.location.href='/func'">测试</button>
+        <button onclick="window.location.href='/test'">测试</button>
+        <button onclick="window.location.href='/cali'">校准</button>
     </div>
     <div class="data">
         <div class="unit">
@@ -157,37 +170,75 @@ const char* rechtml = R"rawliteral(
         <div class="rectangle" style="top: 0; right: 0; transform: translate(-100px, 100px);"></div>
         <div class="rectangle" style="bottom: 0 ;right: 0; transform: translate(-100px, -100px);"></div>
         <div class="rectangle" style="top: 50%; left: 50%; transform: translate(-50%, -50%)"></div>
-        <div class="circle zero-circle" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(0deg) translate(-250px) rotate(0deg);"><span>原点</span></div>
+        <div class="circle zero-circle"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(0deg) translate(-250px) rotate(0deg);">
+            <span>原点</span></div>
         <!-- Inner circles -->
-        <div class="circle 7" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(0deg) translate(75px) rotate(0deg);"><span>7</span></div>
-        <div class="circle 10" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(60deg) translate(75px) rotate(-60deg);"><span>10</span></div>
-        <div class="circle 9" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(120deg) translate(75px) rotate(-120deg);"><span>9</span></div>
-        <div class="circle 6" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(180deg) translate(75px) rotate(-180deg);"><span>6</span></div>
-        <div class="circle 3" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(240deg) translate(75px) rotate(-240deg);"><span>3</span></div>
-        <div class="circle 4" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(300deg) translate(75px) rotate(-300deg);"><span>4</span></div>
-        
-        <!-- Outer circles -->
-        <div class="circle 8" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(0deg) translate(150px) rotate(0deg);"><span>8</span></div>
-        <div class="circle 12" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(60deg) translate(150px) rotate(-60deg);"><span>12</span></div>
-        <div class="circle 11" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(120deg) translate(150px) rotate(-120deg);"><span>11</span></div>
-        <div class="circle 5" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(180deg) translate(150px) rotate(-180deg);"><span>5</span></div>
-        <div class="circle 1" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(240deg) translate(150px) rotate(-240deg);"><span>1</span></div>
-        <div class="circle 2" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(300deg) translate(150px) rotate(-300deg);"><span>2</span></div>
+        <div class="circle 7"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(0deg) translate(75px) rotate(0deg);">
+            <span>7</span></div>
+        <div class="circle 10"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(60deg) translate(75px) rotate(-60deg);">
+            <span>10</span></div>
+        <div class="circle 9"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(120deg) translate(75px) rotate(-120deg);">
+            <span>9</span></div>
+        <div class="circle 6"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(180deg) translate(75px) rotate(-180deg);">
+            <span>6</span></div>
+        <div class="circle 3"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(240deg) translate(75px) rotate(-240deg);">
+            <span>3</span></div>
+        <div class="circle 4"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(300deg) translate(75px) rotate(-300deg);">
+            <span>4</span></div>
 
         <!-- Outer circles -->
-        <div class="unit_text" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(0deg) translate(112px) rotate(0deg);"><span>14</span></div>
-        <div class="unit_text" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(60deg) translate(112px) rotate(-60deg);"><span>15</span></div>
-        <div class="unit_text" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(120deg) translate(112px) rotate(-120deg);"><span>16</span></div>
-        <div class="unit_text" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(180deg) translate(112px) rotate(-180deg);"><span>11</span></div>
-        <div class="unit_text" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(240deg) translate(112px) rotate(-240deg);"><span>12</span></div>
-        <div class="unit_text" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(300deg) translate(112px) rotate(-300deg);"><span>13</span></div>
+        <div class="circle 8"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(0deg) translate(150px) rotate(0deg);">
+            <span>8</span></div>
+        <div class="circle 12"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(60deg) translate(150px) rotate(-60deg);">
+            <span>12</span></div>
+        <div class="circle 11"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(120deg) translate(150px) rotate(-120deg);">
+            <span>11</span></div>
+        <div class="circle 5"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(180deg) translate(150px) rotate(-180deg);">
+            <span>5</span></div>
+        <div class="circle 1"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(240deg) translate(150px) rotate(-240deg);">
+            <span>1</span></div>
+        <div class="circle 2"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(300deg) translate(150px) rotate(-300deg);">
+            <span>2</span></div>
+
+        <!-- Outer circles -->
+        <div class="unit_text"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(0deg) translate(112px) rotate(0deg);">
+            <span>14</span></div>
+        <div class="unit_text"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(60deg) translate(112px) rotate(-60deg);">
+            <span>15</span></div>
+        <div class="unit_text"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(120deg) translate(112px) rotate(-120deg);">
+            <span>16</span></div>
+        <div class="unit_text"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(180deg) translate(112px) rotate(-180deg);">
+            <span>11</span></div>
+        <div class="unit_text"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(240deg) translate(112px) rotate(-240deg);">
+            <span>12</span></div>
+        <div class="unit_text"
+            style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(300deg) translate(112px) rotate(-300deg);">
+            <span>13</span></div>
     </div>
     <script>
-        function update(){
+        function update() {
             // 创建要发送的 JSON 数据
             const dataToSend = {
                 ID: "0",
-                func:"rec_update_data"
+                func: "rec_update_data"
             };
             // 使用 fetch 发送请求
             fetch('/data', {
@@ -197,18 +248,18 @@ const char* rechtml = R"rawliteral(
                 },
                 body: JSON.stringify(dataToSend)
             })
-            .then(response => response.json())
-            .then(data => {
+                .then(response => response.json())
+                .then(data => {
 
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
         }
-        function test(){
+        function test() {
             // 选择所有包含 'circle' 类的元素
             const circles = document.querySelectorAll('.circle');
-            
+
             // 使用 map 方法创建一个包含圆元素和数字部分的对象数组
             const circlesArray = Array.from(circles).map(circle => {
                 const match = circle.className.match(/\b(\d+)\b/);
@@ -217,20 +268,20 @@ const char* rechtml = R"rawliteral(
                     number: match ? parseInt(match[1], 10) : null
                 };
             });
-            
+
             // 对数组进行排序，基于数字部分
             circlesArray.sort((a, b) => a.number - b.number);
 
-            const circleArray=circlesArray.map(item => item.element);
-            
-            for(i=1;i<=12;i++){
-                circleArray[i].style.backgroundColor="blue";
+            const circleArray = circlesArray.map(item => item.element);
+
+            for (i = 1; i <= 12; i++) {
+                circleArray[i].style.backgroundColor = "blue";
             }
 
             // 创建要发送的 JSON 数据
             const dataToSend = {
                 ID: "0",
-                func:"get_unit_data",
+                func: "get_unit_data",
             };
             // 使用 fetch 发送请求
             fetch('../data', {
@@ -240,66 +291,63 @@ const char* rechtml = R"rawliteral(
                 },
                 body: JSON.stringify(dataToSend)
             })
-            
-            .then(response => response.json())
-            .then(data => {    
-                // 更新 span 元素的文本内容，格式化到两位小数
-                RUdataF1.textContent = parseFloat(data.F1).toFixed(2);
-                RUdataB1.textContent = parseFloat(data.B1).toFixed(2);
-                Voltage1.textContent = parseFloat(data.V1).toFixed(2);
 
-                RUdataF2.textContent = parseFloat(data.F2).toFixed(2);
-                RUdataB2.textContent = parseFloat(data.B2).toFixed(2);
-                Voltage2.textContent = parseFloat(data.V2).toFixed(2);
+                .then(response => response.json())
+                .then(data => {
+                    // 更新 span 元素的文本内容，格式化到两位小数
+                    RUdataF1.textContent = parseFloat(data.F1).toFixed(2);
+                    RUdataB1.textContent = parseFloat(data.B1).toFixed(2);
+                    Voltage1.textContent = parseFloat(data.V1).toFixed(2);
 
-                RUdataF3.textContent = parseFloat(data.F3).toFixed(2);
-                RUdataB3.textContent = parseFloat(data.B3).toFixed(2);
-                Voltage3.textContent = parseFloat(data.V3).toFixed(2);
+                    RUdataF2.textContent = parseFloat(data.F2).toFixed(2);
+                    RUdataB2.textContent = parseFloat(data.B2).toFixed(2);
+                    Voltage2.textContent = parseFloat(data.V2).toFixed(2);
 
-                RUdataF4.textContent = parseFloat(data.F4).toFixed(2);
-                RUdataB4.textContent = parseFloat(data.B4).toFixed(2);
-                Voltage4.textContent = parseFloat(data.V4).toFixed(2);
+                    RUdataF3.textContent = parseFloat(data.F3).toFixed(2);
+                    RUdataB3.textContent = parseFloat(data.B3).toFixed(2);
+                    Voltage3.textContent = parseFloat(data.V3).toFixed(2);
 
-                RUdataF5.textContent = parseFloat(data.F5).toFixed(2);
-                RUdataB5.textContent = parseFloat(data.B5).toFixed(2);
-                Voltage5.textContent = parseFloat(data.V5).toFixed(2);
+                    RUdataF4.textContent = parseFloat(data.F4).toFixed(2);
+                    RUdataB4.textContent = parseFloat(data.B4).toFixed(2);
+                    Voltage4.textContent = parseFloat(data.V4).toFixed(2);
 
-                RUdataF6.textContent = parseFloat(data.F6).toFixed(2);
-                RUdataB6.textContent = parseFloat(data.B6).toFixed(2);
-                Voltage6.textContent = parseFloat(data.V6).toFixed(2);
-                const max_value=data.max;
-                const min_value=data.min;
-                
-                const is_weight = (value) => {
-                    return value >= min_value && value <= max_value;
-                }
-                const set_color = (index,state)=>{
-                    if(state)
-                        circleArray[index].style.backgroundColor="#219ebc";
-                    else{
-                        circleArray[index].style.backgroundColor="#white";
+                    RUdataF5.textContent = parseFloat(data.F5).toFixed(2);
+                    RUdataB5.textContent = parseFloat(data.B5).toFixed(2);
+                    Voltage5.textContent = parseFloat(data.V5).toFixed(2);
+
+                    RUdataF6.textContent = parseFloat(data.F6).toFixed(2);
+                    RUdataB6.textContent = parseFloat(data.B6).toFixed(2);
+                    Voltage6.textContent = parseFloat(data.V6).toFixed(2);
+                    const max_value = data.max;
+                    const min_value = data.min;
+
+                    const is_weight = (value) => {
+                        return value >= min_value && value <= max_value;
                     }
-                }
-                set_color(6,is_weight(data.F1));
-                set_color(5,is_weight(data.B1));
-                set_color(3,is_weight(data.F2));
-                set_color(1,is_weight(data.B2));
-                set_color(4,is_weight(data.F3));
-                set_color(2,is_weight(data.B3));
-                set_color(7,is_weight(data.F4));
-                set_color(8,is_weight(data.B4));
-                set_color(10,is_weight(data.F5));
-                set_color(12,is_weight(data.B5));
-                set_color(9,is_weight(data.F6));
-                set_color(11,is_weight(data.B6));
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+                    const set_color = (index, state) => {
+                        if (state)
+                            circleArray[index].style.backgroundColor = "#219ebc";
+                        else {
+                            circleArray[index].style.backgroundColor = "#white";
+                        }
+                    }
+                    set_color(6, is_weight(data.F1));
+                    set_color(5, is_weight(data.B1));
+                    set_color(3, is_weight(data.F2));
+                    set_color(1, is_weight(data.B2));
+                    set_color(4, is_weight(data.F3));
+                    set_color(2, is_weight(data.B3));
+                    set_color(7, is_weight(data.F4));
+                    set_color(8, is_weight(data.B4));
+                    set_color(10, is_weight(data.F5));
+                    set_color(12, is_weight(data.B5));
+                    set_color(9, is_weight(data.F6));
+                    set_color(11, is_weight(data.B6));
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
         }
     </script>
 </body>
-</html>
-
-
 )rawliteral";

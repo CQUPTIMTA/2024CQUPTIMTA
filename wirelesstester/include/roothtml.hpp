@@ -1,6 +1,7 @@
 const char* htmlContent = R"rawliteral(
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,15 +16,17 @@ const char* htmlContent = R"rawliteral(
             justify-content: left;
             align-items: center;
             height: 100vh;
-            flex-direction:row
+            flex-direction: row
         }
 
         .container {
             display: flex;
-            flex-direction: row; /* 横向排列 */
+            flex-direction: row;
+            /* 横向排列 */
             justify-content: left;
             align-items: flex-start;
-            gap: 20px; /* 添加间距 */
+            gap: 20px;
+            /* 添加间距 */
             width: 93%;
             padding: 20px;
             box-sizing: border-box;
@@ -37,7 +40,8 @@ const char* htmlContent = R"rawliteral(
             padding: 20px;
             text-align: left;
             height: 90vh;
-            width: 300px; /* 设置固定宽度 */
+            width: 300px;
+            /* 设置固定宽度 */
         }
 
         input[type="number"] {
@@ -78,32 +82,41 @@ const char* htmlContent = R"rawliteral(
             font-weight: bold;
             margin: 0;
         }
+
         .warp {
             display: flex;
             flex-direction: column;
-            justify-content: flex-start; /* 对齐到顶部 */
-            gap: 10px; /* 增加按钮之间的间距 */
+            justify-content: flex-start;
+            /* 对齐到顶部 */
+            gap: 10px;
+            /* 增加按钮之间的间距 */
             height: 30%;
-            width: 100px; /* 调整容器宽度以适应按钮文本 */
+            width: 100px;
+            /* 调整容器宽度以适应按钮文本 */
         }
+
         .warp button {
             background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 5px;
-            padding: 10px; /* 增加内边距 */
+            padding: 10px;
+            /* 增加内边距 */
             cursor: pointer;
-            margin: 5px 0; /* 增加外边距 */
+            margin: 5px 0;
+            /* 增加外边距 */
             width: 100%;
             font-size: 16px;
             height: auto;
         }
     </style>
 </head>
+
 <body>
     <div class="warp">
         <button onclick="window.location.href='/rec'">识别</button>
         <button onclick="window.location.href='/test'">测试</button>
+        <button onclick="window.location.href='/cali'">校准</button>
     </div>
     <div class="container">
         <div class="grap">
@@ -112,9 +125,9 @@ const char* htmlContent = R"rawliteral(
             <button onclick="rezero(this)">归零</button>
             <button onclick="load(this,false)">卸载</button>
             <button onclick="load(this,true)">使能</button>
-            <input type="number" id="Zvalue" value="230" min="0" max="250" step="10">
+            <input type="number" id="Zvalue" value="220" min="0" max="230" step="10">
             <button onclick="move_to_axis(this,'Z')">移动到Z</button>
-            <input type="number" id="Xvalue" value="250" min="0" max="1800" step="50">
+            <input type="number" id="Xvalue" value="1000" min="0" max="1800" step="50">
             <button onclick="move_to_axis(this,'X')">移动到X</button>
             <div>Z：<span id="Zposition"></span></div>
             <div>X：<span id="Xposition"></span></div>
@@ -127,7 +140,7 @@ const char* htmlContent = R"rawliteral(
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             const grapContainer = document.querySelector('.container');
             const grap = document.querySelector('.grap');
 
@@ -140,7 +153,7 @@ const char* htmlContent = R"rawliteral(
                 label.textContent = `ID: ${i}`;
                 const newID = `ID-${i}`;
                 label.setAttribute('for', newID);
-                label.setAttribute("data-id",i);
+                label.setAttribute("data-id", i);
                 grapContainer.appendChild(clone);
             }
 
@@ -165,7 +178,7 @@ const char* htmlContent = R"rawliteral(
                 grapContainer.appendChild(clone);
             }
         });
-        function grap(button,_state){
+        function grap(button, _state) {
             // 获取当前按钮所属的label元素
             const label = button.parentNode.querySelector('label');
             // 从label元素中读取ID值
@@ -173,8 +186,8 @@ const char* htmlContent = R"rawliteral(
             // 创建要发送的 JSON 数据
             const dataToSend = {
                 ID: id,
-                func:"grap",
-                state:_state
+                func: "grap",
+                state: _state
             };
             // 使用 fetch 发送请求
             fetch('/data', {
@@ -185,7 +198,7 @@ const char* htmlContent = R"rawliteral(
                 body: JSON.stringify(dataToSend)
             })
         }
-        function grap_update_data(button){
+        function grap_update_data(button) {
             // 获取当前按钮所属的父元素grap
             const grap = button.closest('.grap');
             // 获取当前按钮所属的label元素
@@ -201,7 +214,7 @@ const char* htmlContent = R"rawliteral(
             // 创建要发送的 JSON 数据
             const dataToSend = {
                 ID: id,
-                func:"grap_update_data"
+                func: "grap_update_data"
             };
             // 使用 fetch 发送请求
             fetch('/data', {
@@ -211,20 +224,20 @@ const char* htmlContent = R"rawliteral(
                 },
                 body: JSON.stringify(dataToSend)
             })
-            .then(response => response.json())
-            .then(data => {
-                // 更新 span 元素的文本内容
-                zPositionSpan.textContent = parseFloat(data.Zposition).toFixed(2);
-                xPositionSpan.textContent = parseFloat(data.Xposition).toFixed(2);
-                servoTempSpan.textContent = data.servo_temp;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-            
+                .then(response => response.json())
+                .then(data => {
+                    // 更新 span 元素的文本内容
+                    zPositionSpan.textContent = parseFloat(data.Zposition).toFixed(2);
+                    xPositionSpan.textContent = parseFloat(data.Xposition).toFixed(2);
+                    servoTempSpan.textContent = data.servo_temp;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+
 
         }
-        function crossbeam_update_data(button){
+        function crossbeam_update_data(button) {
             // 获取当前按钮所属的父元素
             const grap = button.closest('.crossbeam');
             // 获取当前按钮所属的label元素
@@ -239,7 +252,7 @@ const char* htmlContent = R"rawliteral(
             // 创建要发送的 JSON 数据
             const dataToSend = {
                 ID: id,
-                func:"crossbeam_update_data"
+                func: "crossbeam_update_data"
             };
             // 使用 fetch 发送请求
             fetch('/data', {
@@ -249,19 +262,19 @@ const char* htmlContent = R"rawliteral(
                 },
                 body: JSON.stringify(dataToSend)
             })
-            .then(response => response.json())
-            .then(data => {
-                // 更新 span 元素的文本内容
-                YPositionSpan.textContent = data.YPositionSpan;
-                Voltage.textContent = data.Voltage;
+                .then(response => response.json())
+                .then(data => {
+                    // 更新 span 元素的文本内容
+                    YPositionSpan.textContent = data.YPositionSpan;
+                    Voltage.textContent = data.Voltage;
 
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
 
         }
-        function rezero(button){
+        function rezero(button) {
             // 获取当前按钮所属的label元素
             const label = button.parentNode.querySelector('label');
             // 从label元素中读取ID值
@@ -269,7 +282,7 @@ const char* htmlContent = R"rawliteral(
             // 创建要发送的 JSON 数据
             const dataToSend = {
                 ID: id,
-                func:"rezero"
+                func: "rezero"
             };
             // 使用 fetch 发送请求
             fetch('/data', {
@@ -280,7 +293,7 @@ const char* htmlContent = R"rawliteral(
                 body: JSON.stringify(dataToSend)
             })
         }
-        function load(button,_state){
+        function load(button, _state) {
             // 获取当前按钮所属的label元素
             const label = button.parentNode.querySelector('label');
             // 从label元素中读取ID值
@@ -288,8 +301,8 @@ const char* htmlContent = R"rawliteral(
             // 创建要发送的 JSON 数据
             const dataToSend = {
                 ID: id,
-                func:"load",
-                state:_state
+                func: "load",
+                state: _state
             };
             // 使用 fetch 发送请求
             fetch('/data', {
@@ -300,7 +313,7 @@ const char* htmlContent = R"rawliteral(
                 body: JSON.stringify(dataToSend)
             })
         }
-        function move_to_axis(button,_axis){
+        function move_to_axis(button, _axis) {
             const valueInput = button.parentNode.querySelector(`#${_axis}value`);
             const _value = valueInput.value;
             // 获取当前按钮所属的label元素
@@ -311,9 +324,9 @@ const char* htmlContent = R"rawliteral(
             // 创建要发送的 JSON 数据
             const dataToSend = {
                 ID: id,
-                func:"move_to_axis",
-                axis:_axis,
-                value:_value
+                func: "move_to_axis",
+                axis: _axis,
+                value: _value
             };
             // 使用 fetch 发送请求
             fetch('/data', {
@@ -325,7 +338,7 @@ const char* htmlContent = R"rawliteral(
             })
 
         }
-        function laser(button,_state){
+        function laser(button, _state) {
             // 获取当前按钮所属的label元素
             const label = button.parentNode.querySelector('label');
             // 从label元素中读取ID值
@@ -333,8 +346,8 @@ const char* htmlContent = R"rawliteral(
             // 创建要发送的 JSON 数据
             const dataToSend = {
                 ID: id,
-                func:"laser",
-                state:_state
+                func: "laser",
+                state: _state
             };
             // 使用 fetch 发送请求
             fetch('/data', {
@@ -347,5 +360,6 @@ const char* htmlContent = R"rawliteral(
         }
     </script>
 </body>
+
 </html>
 )rawliteral";
