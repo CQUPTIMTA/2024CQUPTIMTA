@@ -1,10 +1,8 @@
 /*
  * @Description:
  * @Author: qingmeijiupiao
- * @Date: 2024-05-17 10:13:33
+ * @Date: 2024-05-17 10:13:3
  */
-
-
 #include "commands.hpp"
 #include "web.hpp"
 void add_help(){
@@ -51,13 +49,16 @@ int help(int argc = 0, char** argv = NULL) {
 
 
 
-float ground_hight=10;
-float release_hight=220;
-float safe_distance=40;
+float ground_hight=0;//抓取高度
+float release_hight=220;//放下高度
+float safe_distance=40;//安全距离
 TaskHandle_t ID6task_handler=nullptr;
+bool ID6complite=false; //6号横梁抓完标志
+bool ID8complite=false; //8号横梁抓完标志
 void ID6task(void * pvParameters) {
   commands::wait(6,'Y');
   if(commands::ID6Crossbeam_weight[0].y==commands::ID6Crossbeam_weight[1].y){
+    
     commands::move_to_z(1,ground_hight);
     commands::move_to_z(2,ground_hight);
     commands::wait(1,'Z');
@@ -77,7 +78,7 @@ void ID6task(void * pvParameters) {
     commands::wait(6,'Y');
     commands::grap(first_id,0,700);
     commands::move_to_z(first_id,release_hight);
-    delay(200);
+    delay(500);
     //再抓第二个
     commands::move_to_y(6,commands::ID6Crossbeam_weight[1].y+safe_distance);
     commands::wait(6,'Y');
@@ -87,9 +88,8 @@ void ID6task(void * pvParameters) {
     commands::wait(6,'Y');
     commands::grap(second_id,0,700);
     commands::move_to_z(second_id,release_hight);
-    delay(200);
   }
-
+  delay(500);
   commands::move_to_y(6,245);
   ID6task_handler=nullptr;
   commands::move_to_x(1,1755);
@@ -99,12 +99,15 @@ void ID6task(void * pvParameters) {
   delay(2000);//等砝码稳定
   commands::grap(1,1,0);
   commands::grap(2,1,0);
-
+  ID6complite=true;
   vTaskDelete( NULL );
 }
 TaskHandle_t ID8task_handler=nullptr;
 void ID8task(void * pvParameters) {
+
+  
   commands::wait(8,'Y');
+
   if(commands::ID8Crossbeam_weight[0].y==commands::ID8Crossbeam_weight[1].y){
     commands::move_to_z(4,ground_hight);
     commands::move_to_z(5,ground_hight);
@@ -136,26 +139,29 @@ void ID8task(void * pvParameters) {
     commands::grap(second_id,0,700);
 
     commands::move_to_z(second_id,release_hight);
-    delay(200);
   }
-
+  delay(500);
   commands::move_to_x(4,1755);
   commands::move_to_x(5,245);
   commands::move_to_y(8,3755);
   ID8task_handler=nullptr;
   commands::wait(8,'Y');
+
   delay(2000);//等砝码稳定
   commands::grap(4,1,0);
   commands::grap(5,1,0);
+  ID8complite=true;
   vTaskDelete( NULL );
 }
 
 TaskHandle_t main_func_handler=nullptr;
 void main_func(void * pvParameters) {
+  ID6complite=false; //6号横梁抓完标志
+  ID8complite=false; //8号横梁抓完标志
   commands::ID6Crossbeam_weight.push_back(commands::weight_points[1]);
-  commands::ID6Crossbeam_weight.push_back(commands::weight_points[11]);
-  commands::ID7Crossbeam_weight=commands::weight_points[6];
-  commands::ID8Crossbeam_weight.push_back(commands::weight_points[2]);
+  commands::ID6Crossbeam_weight.push_back(commands::weight_points[9]);
+  commands::ID7Crossbeam_weight=commands::weight_points[5];
+  commands::ID8Crossbeam_weight.push_back(commands::weight_points[4]);
   commands::ID8Crossbeam_weight.push_back(commands::weight_points[12]);
 
   commands::all_z_to_height(120);
@@ -164,6 +170,7 @@ void main_func(void * pvParameters) {
   commands::move_to_y(7,2750);
   commands::move_to_y(6,commands::ID6Crossbeam_weight[0].y+safe_distance);
 
+  //获取最小和最大的X坐标
   auto get_mini_x=[](std::vector<commands::point> point_list)->float{
     return point_list[0].x<point_list[1].x?point_list[0].x:point_list[1].x;
   };
@@ -171,14 +178,16 @@ void main_func(void * pvParameters) {
     return point_list[0].x>point_list[1].x?point_list[0].x:point_list[1].x;
   };
   //再启动X
-  commands::move_to_x(1,get_max_x(commands::ID6Crossbeam_weight));
-  commands::move_to_x(2,get_mini_x(commands::ID6Crossbeam_weight));
+  commands::move_to_x(1,get_max_x(commands::ID6Crossbeam_weight));//X小的分配给1号
+  commands::move_to_x(2,get_mini_x(commands::ID6Crossbeam_weight));//X大的分配给2号
   //commands::move_to_x(3,commands::ID7Crossbeam_weight.x);
-  commands::move_to_x(4,get_max_x(commands::ID8Crossbeam_weight));
-  commands::move_to_x(5,get_mini_x(commands::ID8Crossbeam_weight));
-  xTaskCreate(ID6task, "ID6task", 4096, NULL, 5, &ID6task_handler);
-  xTaskCreate(ID8task, "ID8task", 4096, NULL, 5, &ID8task_handler);
-  if(commands::ID7Crossbeam_weight.y<2750){
+  commands::move_to_x(4,get_max_x(commands::ID8Crossbeam_weight));//X小的分配给4号
+  commands::move_to_x(5,get_mini_x(commands::ID8Crossbeam_weight));//X大的分配给5号
+  Serial.println("start");
+  xTaskCreate(ID6task, "ID6task", 4096, NULL, 5, &ID6task_handler);//创建6号横梁的任务
+  xTaskCreate(ID8task, "ID8task", 4096, NULL, 5, &ID8task_handler);//创建8号横梁的任务
+
+  if(commands::ID7Crossbeam_weight.y<2750){//判断是先抓远端还是先抓近端砝码
     while(ID6task_handler!=nullptr){
       delay(10);
     }
@@ -187,6 +196,7 @@ void main_func(void * pvParameters) {
       delay(10);
     }
   }
+  Serial.println("7 move");
   //移动到砝码安全距离
   commands::move_to_y(7,commands::ID7Crossbeam_weight.y+safe_distance);
   commands::wait(7,'Y');
@@ -203,6 +213,10 @@ void main_func(void * pvParameters) {
   delay(1000);//等砝码稳定
   commands::grap(3,1,0);
   
+  //等待执行完毕
+  while(!(ID8complite||ID6complite)){
+    delay(10);
+  }
   //执行完毕,蜂鸣器响
   commands::buzz(6,1);
   commands::buzz(7,1);
@@ -218,7 +232,7 @@ void main_func(void * pvParameters) {
 
 int main_func_task(int argc = 0, char** argv = NULL) {
   if(main_func_handler!=nullptr){
-    xTaskCreatePinnedToCore(main_func, "main_task", 4096, NULL, 5, &main_func_handler,1);
+    xTaskCreatePinnedToCore(main_func, "main_task", 8192, NULL, 8, &main_func_handler,1);
   }
   return 0;
 }

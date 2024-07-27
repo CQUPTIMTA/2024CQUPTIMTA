@@ -189,6 +189,7 @@ void esp_now_send_package(package_type type,int _id,String name,uint8_t* data,in
   for(int i=0;i<MAX_RETRY;i++){
     auto err = esp_now_send(receive_MAC,send_data_array,send_data.get_len());
     if (err == ESP_OK)  break;
+    Serial.println("resending the data: " + name);
     delay(20);
   }
 }

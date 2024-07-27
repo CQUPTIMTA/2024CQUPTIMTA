@@ -20,12 +20,10 @@ namespace GrapUnit{
   EMMC42V5 Z_motor(&motor_ser,1);
   //夹爪舵机
   RTOSSERVO grap_servo(&servo_ser,1);
-  RTOSSERVO X_servo(&servo_ser,2);
-  RTOSSERVO Y_servo(&servo_ser,3);
-  //电机互斥锁
+  //电机互斥锁,用于保护电机串口总线
   SemaphoreHandle_t motorMutex = xSemaphoreCreateMutex();
 
-  float taget_x=0;
+  float taget_x=0;//目标X轴位置
 
   //机械爪的开合
   void grap(bool state){
@@ -56,7 +54,9 @@ namespace GrapUnit{
   void IO11interrupt( ){
     digitalWrite(15,digitalRead(11));
   }
-
+  void IO37interrupt( ){
+    digitalWrite(6,!digitalRead(37));
+  }
 
 //获取当前X轴电机所处位置
   float get_now_location_x() {
@@ -67,7 +67,7 @@ namespace GrapUnit{
       int64_t m1=X_motor.read_current_location();
       m2=double(m1)*40.0*PI/65535.0;
       location=m2+DATA.X_ZERO_POINT;
-      if(location<2000&&location>0&&m1!=0){
+      if(abs(location)<2000&&m1!=0){
         xSemaphoreGive(motorMutex);//释放互斥锁
         return location;
       }
@@ -95,44 +95,53 @@ namespace GrapUnit{
         wait_to_x(x);
     }
   }
-  //无限位归零
-  void rezero_Z(){
-    REZREO_parameter pa;
-    pa.mode=2;
-    pa.direction=DATA.Zdirection>0?1:0;
-    pa.speed=100;
-    pa.timeout=10000;
-    pa.limit_speed=300;
-    pa.limit_current=500;
-    pa.limit_time=100;
-    pa.auto_rezero=0;
-    Z_motor.change_parameter(0,0,pa);
-    delay(300);
-    Z_motor.re_zero(2);
-  }
-
-  // //有限位Z归零
+  // //无限位归零
   // void rezero_Z(){
-  //   Z_motor.speed_control(60*DATA.Zdirection,0);
-  //   while(digitalRead(37)){
-  //     delay(1);
-  //   }
-  //   Z_motor.pulse_control(-256*1*DATA.Zdirection,30);
-  //   delay(1000);
-  //   Z_motor.speed_control(3*DATA.Zdirection,0);
-  //   while(digitalRead(37)){
-  //     delay(1);
-  //   }
-  //   Z_motor.speed_control(0,0);
-  //   Z_motor.angle_reset();
+  //   REZREO_parameter pa;
+  //   pa.mode=2;
+  //   pa.direction=DATA.Zdirection>0?1:0;
+  //   pa.speed=100;
+  //   pa.timeout=10000;
+  //   pa.limit_speed=300;
+  //   pa.limit_current=500;
+  //   pa.limit_time=100;
+  //   pa.auto_rezero=0;
+  //   Z_motor.change_parameter(0,0,pa);
+  //   delay(300);
+  //   Z_motor.re_zero(2);
   // }
+
+  //有限位Z归零
+  void rezero_Z(){
+    if(digitalRead(37)){
+      Z_motor.speed_control(-60*DATA.Zdirection,0);
+    }
+    while(digitalRead(37)){
+      delay(1);
+    }
+    Z_motor.pulse_control(3000*1*DATA.Zdirection,30);
+    delay(1000);
+    Z_motor.speed_control(-10*DATA.Zdirection,0);
+    while(digitalRead(37)){
+      delay(1);
+    }
+    Z_motor.speed_control(0,0);
+    Z_motor.angle_reset();
+  }
 
 
   /* 获取Z轴当前高度         */
   float get_location_z(){
     xSemaphoreTake(motorMutex, portMAX_DELAY);
-    int64_t m1=Z_motor.read_current_location();
-    float high=DATA.Zdirection*5*2.0*PI*m1/65535.0;
+    float high=0;
+    for (int i = 0; i < 10; i++){
+      int64_t m1=Z_motor.read_current_location();
+      high=DATA.Zdirection*5*2.0*PI*m1/65535.0;
+      if(high!=0&&abs(high)<300){
+        break;
+      }
+      delay(10);
+    }
     xSemaphoreGive(motorMutex);//释放互斥锁
     return high;
   }
@@ -316,10 +325,6 @@ namespace EspnowCallback{
     float angle=0;
     if(axis=='G'){
      angle=GrapUnit::grap_servo.SERVO_ANGLE_READ();
-    }else if(axis=='X'){
-      angle=GrapUnit::X_servo.SERVO_ANGLE_READ();
-    }else if(axis=='Y'){
-      angle=GrapUnit::Y_servo.SERVO_ANGLE_READ();
     }
     esp_now_send_package(package_type_response,redata.id,"read_servo_angle",(uint8_t*)&angle,4,receive_MACAddress);
   }
@@ -392,6 +397,8 @@ void PINSetup(){
   pinMode(laser_pin,OUTPUT_OPEN_DRAIN);
   digitalWrite(laser_pin,HIGH);
   attachInterrupt(11,GrapUnit::IO11interrupt,CHANGE);
+  attachInterrupt(37,GrapUnit::IO37interrupt,CHANGE);
+  digitalWrite(6,!digitalRead(37));
 }
 void setup() {
   Serial.begin(115200);
@@ -401,6 +408,12 @@ void setup() {
   GrapUnit::DATA.setup();
   GrapUnit::DATA.read();
 
+
+  // GrapUnit::DATA.ID=3;
+  // GrapUnit::DATA.X_ZERO_POINT=1805.14;
+  // GrapUnit::DATA.grap_servo_open=105.0;
+  // GrapUnit::DATA.grap_servo_close=47.0;
+  // GrapUnit::DATA.write();
   //初始化引脚
   PINSetup();
   /*无线控制部分*/
@@ -423,6 +436,7 @@ void loop() {
     digitalWrite(7,0);
     delay(300);
   }
+
   delay(1000);
 
 }

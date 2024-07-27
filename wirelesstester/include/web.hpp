@@ -211,7 +211,7 @@ void handleData(){
       }
     }else if (func=="MIAN_FUNC"){
       if(main_func_handler==nullptr){
-        xTaskCreatePinnedToCore(main_func, "main_func", 4096, NULL, 5, &main_func_handler,1);
+        xTaskCreatePinnedToCore(main_func, "main_func", 8192, NULL, 8, &main_func_handler,1);
       }
     }
 

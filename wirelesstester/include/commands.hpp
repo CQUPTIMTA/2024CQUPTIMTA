@@ -21,6 +21,7 @@ std::map<String, String> help_map;
 
 namespace commands{
     bool wait_package(String name,int timeout=1000,bool need_show=true){
+        delay(300);
         int i=0;
         while(receive_datas.find(name)==receive_datas.end()){
         delay(10);
@@ -74,12 +75,16 @@ namespace commands{
     };
     recognition_unit_data get_recognition_unit(int id){
         char pra='S';
-        esp_now_send_package(package_type_request,id,"get_sensor_distance",(uint8_t*)(&pra),1);
         recognition_unit_data data;
-        if(wait_package("get_sensor_distance")) return data;
-        data.front_distance=*(float*)receive_datas["get_sensor_distance"].data;
-        data.back_distance=*(float*)(receive_datas["get_sensor_distance"].data+4);
-        receive_datas.erase("get_sensor_distance");
+        for(int i=0;i<3;i++){
+            esp_now_send_package(package_type_request,id,"get_sensor_distance",(uint8_t*)(&pra),1);
+            if(!wait_package("get_sensor_distance")){
+                data.front_distance=*(float*)receive_datas["get_sensor_distance"].data;
+                data.back_distance=*(float*)(receive_datas["get_sensor_distance"].data+4);
+                receive_datas.erase("get_sensor_distance");
+                if(data.front_distance!=0&&data.back_distance!=0) break;
+            }           
+        }
         return data;
     }
 
@@ -92,8 +97,8 @@ namespace commands{
     }
     bool rezero(int id){
         esp_now_send_package(package_type_request,id,"auto_rezero",nullptr,0);
-        if(wait_package("auto_rezero")) return 0;
-        receive_datas.erase("auto_rezero");
+        // if(wait_package("auto_rezero")) return 0;
+        // receive_datas.erase("auto_rezero");
         return 1;
     }
     void move_y(int id ,float point,int speed=1000,int acce=220){
@@ -256,82 +261,85 @@ namespace commands{
         for(int i=11;i<=16;++i){
             datas[i-11]=get_recognition_unit(i);
         }
-        auto have_weight=[](float raw)->bool{
-            if(raw>50&&raw<350) return true;
-            else return false;
+        auto have_weight=[](recognition_unit_data raw)->bool{//true为前方有,false为后方有
+            if(raw.front_distance==0&&raw.back_distance==0){//两个超声波都寄了
+                return esp_random()%2;//上天会给我们正确的位置的
+            }
+            else if(raw.front_distance!=0&&raw.back_distance!=0){//都有数据的情况
+                return raw.front_distance<raw.back_distance;//那边距离小那边就有砝码
+            }else if(raw.front_distance==0){
+                return raw.back_distance>200; //200mm为阈值,小于这个值认为该处有砝码
+            }else if(raw.back_distance==0){
+                return raw.front_distance<200;
+            }
+            return esp_random()%2;//上面的if语句覆盖了所有情况,这里是默认返回值是防止编译器报错
+        };
+        auto add_weight=[](int id)->void{
+            now_weights_point.push_back(weight_points[id]);
+            now_weights_id.push_back(id);
         };
         now_weights_point.clear();
         now_weights_id.clear();
-        //解析识别到的砝码
-        if(have_weight(datas[0].front_distance)) {now_weights_point.push_back(weight_points[6]); now_weights_id.push_back(6);}
-        if(have_weight(datas[0].back_distance)) {now_weights_point.push_back(weight_points[5]); now_weights_id.push_back(5);}
-        if(have_weight(datas[1].front_distance)) {now_weights_point.push_back(weight_points[3]);now_weights_id.push_back(3);}
-        if(have_weight(datas[1].back_distance)) {now_weights_point.push_back(weight_points[1]);now_weights_id.push_back(1);}
-        if(have_weight(datas[2].front_distance)) {now_weights_point.push_back(weight_points[4]);now_weights_id.push_back(4);}
-        if(have_weight(datas[2].back_distance)) {now_weights_point.push_back(weight_points[2]);now_weights_id.push_back(2);}
-        if(have_weight(datas[3].front_distance)) {now_weights_point.push_back(weight_points[7]);now_weights_id.push_back(7);}
-        if(have_weight(datas[3].back_distance)) {now_weights_point.push_back(weight_points[8]);now_weights_id.push_back(8);}
-        if(have_weight(datas[4].front_distance)) {now_weights_point.push_back(weight_points[10]);now_weights_id.push_back(10);}
-        if(have_weight(datas[4].back_distance)) {now_weights_point.push_back(weight_points[12]);now_weights_id.push_back(12);}
-        if(have_weight(datas[5].front_distance)) {now_weights_point.push_back(weight_points[9]);now_weights_id.push_back(9);}
-        if(have_weight(datas[5].back_distance)) {now_weights_point.push_back(weight_points[11]);now_weights_id.push_back(11);}
-        //如果砝码数量为6个认为识别正确
-        if (now_weights_point.size()==6){
-            ID8Crossbeam_weight.clear();
-            ID7Crossbeam_weight={0,0};
-            ID6Crossbeam_weight.clear();
-            auto find_weight=[](int id)->bool{
-                if(std::find(commands::now_weights_id.begin(),commands::now_weights_id.end(),id)!=commands::now_weights_id.end()){
-                    return true;
-                }else{
-                    return false;
-                }
-            };
-            //6号横梁抓取砝码
-            if(find_weight(1)){
-                ID6Crossbeam_weight.push_back(commands::weight_points[1]);
-            }else{
-                ID6Crossbeam_weight.push_back(commands::weight_points[3]);
-            }
-            if(find_weight(11)){
-                ID6Crossbeam_weight.push_back(commands::weight_points[11]);
-            }else{
-                ID6Crossbeam_weight.push_back(commands::weight_points[9]);
-            }
+        have_weight(datas[0])?add_weight(6):add_weight(5);
+        have_weight(datas[1])?add_weight(3):add_weight(1);
+        have_weight(datas[2])?add_weight(4):add_weight(2);
+        have_weight(datas[3])?add_weight(7):add_weight(8);
+        have_weight(datas[4])?add_weight(10):add_weight(12);
+        have_weight(datas[5])?add_weight(9):add_weight(11);
 
-            //确保Y小的在前
-            if(ID6Crossbeam_weight[0].y>ID6Crossbeam_weight[1].y){
-                std::swap(ID6Crossbeam_weight[0],ID6Crossbeam_weight[1]);
-            }
-
-            //8号横梁抓取砝码
-            if(find_weight(2)){
-                ID8Crossbeam_weight.push_back(commands::weight_points[2]);
+        ID8Crossbeam_weight.clear();
+        ID7Crossbeam_weight={0,0};
+        ID6Crossbeam_weight.clear();
+        auto find_weight=[](int id)->bool{
+            if(std::find(commands::now_weights_id.begin(),commands::now_weights_id.end(),id)!=commands::now_weights_id.end()){
+                return true;
             }else{
-                ID8Crossbeam_weight.push_back(commands::weight_points[4]);
+                return false;
             }
-            if(find_weight(12)){
-                ID8Crossbeam_weight.push_back(commands::weight_points[12]);
-            }else{
-                ID8Crossbeam_weight.push_back(commands::weight_points[10]);
-            }
-            //确保Y小的在前
-            if(ID8Crossbeam_weight[0].y>ID8Crossbeam_weight[1].y){
-                std::swap(ID8Crossbeam_weight[0],ID8Crossbeam_weight[1]);
-            }
-
-            //如果有两个相同的Y,认为该横梁最快抓取，7号就抓该侧砝码
-            if(ID6Crossbeam_weight[0].y==ID6Crossbeam_weight[1].y){
-                ID7Crossbeam_weight=find_weight(5)?commands::weight_points[5]:commands::weight_points[6];
-            }else if(ID8Crossbeam_weight[0].y==ID8Crossbeam_weight[1].y){
-                ID7Crossbeam_weight=find_weight(7)?commands::weight_points[7]:commands::weight_points[8];
-            }else{//默认抓取6号这侧的砝码
-                ID7Crossbeam_weight=find_weight(5)?commands::weight_points[5]:commands::weight_points[6];
-            }
-            return true;
+        };
+        //6号横梁抓取砝码
+        if(find_weight(1)){
+            ID6Crossbeam_weight.push_back(commands::weight_points[1]);
+        }else{
+            ID6Crossbeam_weight.push_back(commands::weight_points[3]);
         }
-        //否则认为识别失败
-        return false;
+        if(find_weight(11)){
+            ID6Crossbeam_weight.push_back(commands::weight_points[11]);
+        }else{
+            ID6Crossbeam_weight.push_back(commands::weight_points[9]);
+        }
+
+        //确保Y小的在前
+        if(ID6Crossbeam_weight[0].y>ID6Crossbeam_weight[1].y){
+            std::swap(ID6Crossbeam_weight[0],ID6Crossbeam_weight[1]);
+        }
+
+        //8号横梁抓取砝码
+        if(find_weight(2)){
+            ID8Crossbeam_weight.push_back(commands::weight_points[2]);
+        }else{
+            ID8Crossbeam_weight.push_back(commands::weight_points[4]);
+        }
+        if(find_weight(12)){
+            ID8Crossbeam_weight.push_back(commands::weight_points[12]);
+        }else{
+            ID8Crossbeam_weight.push_back(commands::weight_points[10]);
+        }
+        //确保Y小的在前
+        if(ID8Crossbeam_weight[0].y>ID8Crossbeam_weight[1].y){
+            std::swap(ID8Crossbeam_weight[0],ID8Crossbeam_weight[1]);
+        }
+
+        //如果有两个相同的Y,认为该横梁最快抓取，7号就抓该侧砝码
+        if(ID6Crossbeam_weight[0].y==ID6Crossbeam_weight[1].y){
+            ID7Crossbeam_weight=find_weight(5)?commands::weight_points[5]:commands::weight_points[6];
+        }else if(ID8Crossbeam_weight[0].y==ID8Crossbeam_weight[1].y){
+            ID7Crossbeam_weight=find_weight(7)?commands::weight_points[7]:commands::weight_points[8];
+        }else{//默认抓取6号这侧的砝码
+            ID7Crossbeam_weight=find_weight(5)?commands::weight_points[5]:commands::weight_points[6];
+        }
+        return true;
+
     }
 
     void all_z_to_height(float height){
@@ -434,12 +442,14 @@ int showinfo(int /*argc*/ = 0, char** /*argv*/ = NULL)
 };
 //在线测试
 int online_test(int argc, char** args){
-
+    int start_time=millis();
     if (argc==2){
         int pra=strtod(args[1],NULL);
         esp_now_send_package(package_type_request,pra,"online_test",nullptr,0);
         //等待响应
+        Serial.printf("wait pakage= %d ms\n",millis()-start_time);
         if(wait_package("online_test")) return 0;
+        Serial.printf("receive pakage= %d ms\n",millis()-start_time);
         //解析响应
         if(receive_datas["online_test"].id==pra){
             shell.print(F("ID:"));

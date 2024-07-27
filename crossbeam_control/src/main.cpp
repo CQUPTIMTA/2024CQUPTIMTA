@@ -124,7 +124,6 @@ namespace EspnowCallback {
         float acce=*(float*)(redata.data+8);
         esp_now_send_package(package_type_response,redata.id,"move_to_y",nullptr,0,receive_MACAddress);
         CROSSBEAM::move_to_y(y,speed,acce);
-        
         // while(abs(CROSSBEAM::get_now_location_y()-y)>10){
         //     delay(20);
         // }
@@ -132,13 +131,14 @@ namespace EspnowCallback {
         // esp_now_send_package(package_type_normal,redata.id,"action_complete",(uint8_t*)sname,strlen(sname),receive_MACAddress);
     }
     void move_y(data_package redata){
+        esp_now_send_package(package_type_response,redata.id,"move_y",nullptr,0,receive_MACAddress);
         float delta=*(float*)redata.data;
         float speed=*(float*)(redata.data+4);
         float acce=*(float*)(redata.data+8);
         float now=CROSSBEAM::get_now_location_y();
         float y=now+delta;
         CROSSBEAM::move_to_y(y,speed,acce);
-        esp_now_send_package(package_type_response,redata.id,"move_y",nullptr,0,receive_MACAddress);
+        
         // while (abs(CROSSBEAM::get_now_location_y()-y)>10){
         //     delay(20);
         // }
