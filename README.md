@@ -16,15 +16,21 @@ arduino框架混合esp-idf函数
 
 对于代码复用的问题，我们采用Esp32的NVS文件系统来存储需要修改的参数，使得同一份工程可以烧录在不同位置的单元上
 ## 目录简介
-## Grab_unit
+### Grab_unit
 抓取单元代码
-## crossbeam_control
+### crossbeam_control
 横梁代码
-## recognition_unit
+### recognition_unit
 识别单元代码
-## wirelesstester
+### wirelesstester
 无线主控代码
-## 测试工具
+### 测试工具
 一些比赛准备过程中写的脚本，例如随机生成砝码顺序等
-## 通信协议.md
+### 通信协议.md
 本作品ESPNOW的数据包格式，以及规定的数据包指令
+## 流程图
+### 比赛流程
+![image](https://github.com/user-attachments/assets/e0e846ec-2b00-4648-a765-ea9161c683a2)
+
+
+
