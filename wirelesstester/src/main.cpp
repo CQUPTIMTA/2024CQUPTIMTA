@@ -49,7 +49,7 @@ int help(int argc = 0, char** argv = NULL) {
 
 
 
-float ground_hight=0;//抓取高度
+float ground_hight=4;//抓取高度
 float release_hight=220;//放下高度
 float safe_distance=40;//安全距离
 TaskHandle_t ID6task_handler=nullptr;
@@ -158,12 +158,6 @@ TaskHandle_t main_func_handler=nullptr;
 void main_func(void * pvParameters) {
   ID6complite=false; //6号横梁抓完标志
   ID8complite=false; //8号横梁抓完标志
-  commands::ID6Crossbeam_weight.push_back(commands::weight_points[1]);
-  commands::ID6Crossbeam_weight.push_back(commands::weight_points[9]);
-  commands::ID7Crossbeam_weight=commands::weight_points[5];
-  commands::ID8Crossbeam_weight.push_back(commands::weight_points[4]);
-  commands::ID8Crossbeam_weight.push_back(commands::weight_points[12]);
-
   commands::all_z_to_height(120);
   //先启动Y
   commands::move_to_y(8,commands::ID8Crossbeam_weight[0].y+safe_distance);
@@ -214,7 +208,7 @@ void main_func(void * pvParameters) {
   commands::grap(3,1,0);
   
   //等待执行完毕
-  while(!(ID8complite||ID6complite)){
+  while(!ID8complite||!ID6complite){
     delay(10);
   }
   //执行完毕,蜂鸣器响
@@ -306,7 +300,12 @@ void setup() {
   digitalWrite(LED,0);
   xTaskCreatePinnedToCore(cmd_task, "cmd_task", 4096, NULL, 5, NULL,0);
   xTaskCreatePinnedToCore(web_task, "web_task", 8182, NULL, 4, NULL,1);
-
+  
+  commands::ID6Crossbeam_weight.push_back(commands::weight_points[1]);
+  commands::ID6Crossbeam_weight.push_back(commands::weight_points[9]);
+  commands::ID7Crossbeam_weight=commands::weight_points[5];
+  commands::ID8Crossbeam_weight.push_back(commands::weight_points[4]);
+  commands::ID8Crossbeam_weight.push_back(commands::weight_points[12])
 }
 
 void loop() {

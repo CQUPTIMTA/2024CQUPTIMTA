@@ -15,7 +15,7 @@
 #include "rechtml.hpp"
 #include "testhtml.hpp"
 #include "calihtml.hpp"
-#define WIFI_SSID "CQUPTIMTA2"        //WiFi名称
+#define WIFI_SSID "CQUPTIMTA2"        //AP名称
 #define WIFI_PASSWORD "znzzjsxh"                 //WiFi密码
 
 #include "commands.hpp"
@@ -25,6 +25,7 @@ WebServer server(80);
 
 extern void main_func(void * pvParameters);
 extern TaskHandle_t main_func_handler;
+
 // 处理设备检测的请求
 void handleDetect() {
   // 发送一个空白的响应
@@ -40,11 +41,10 @@ void handleNotFound() {
 
 
 
+// 发送网页内容
 void handleRoot() {
-  // 发送网页内容
     server.send(200, "text/html", htmlContent);
 }
-
 void handletest(){
     server.send(200, "text/html", testhtml);
 }
@@ -54,6 +54,11 @@ void handlerec(){
 void handlecali(){
     server.send(200, "text/html", calihtml);
 }
+
+
+
+
+// 处理请求函数
 void handleData(){
     
     // 检查是否有有效的HTTP请求体
@@ -163,6 +168,13 @@ void handleData(){
           responseDoc["F"+String(i)]=f_data[i-1];
           responseDoc["B"+String(i)]=b_data[i-1];
           responseDoc["V"+String(i)]=Voltage[i-1];
+        }
+        for (int i = 1; i <= 12; i++){
+          if(commands::weight_points.find(i)!=commands::weight_points.end()){
+            responseDoc["W"+String(i)]="true";
+          }else{
+            responseDoc["W"+String(i)]="false";
+          }
         }
         // 将JSON数据序列化为字符串
         String jsonResponse;

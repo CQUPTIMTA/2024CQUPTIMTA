@@ -170,66 +170,85 @@
         <div class="rectangle" style="top: 50%; left: 50%; transform: translate(-50%, -50%)"></div>
         <div class="circle zero-circle"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(0deg) translate(-250px) rotate(0deg);">
-            <span>原点</span></div>
+            <span>原点</span>
+        </div>
         <!-- Inner circles -->
         <div class="circle 7"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(0deg) translate(75px) rotate(0deg);">
-            <span>7</span></div>
+            <span>7</span>
+        </div>
         <div class="circle 10"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(60deg) translate(75px) rotate(-60deg);">
-            <span>10</span></div>
+            <span>10</span>
+        </div>
         <div class="circle 9"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(120deg) translate(75px) rotate(-120deg);">
-            <span>9</span></div>
+            <span>9</span>
+        </div>
         <div class="circle 6"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(180deg) translate(75px) rotate(-180deg);">
-            <span>6</span></div>
+            <span>6</span>
+        </div>
         <div class="circle 3"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(240deg) translate(75px) rotate(-240deg);">
-            <span>3</span></div>
+            <span>3</span>
+        </div>
         <div class="circle 4"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(300deg) translate(75px) rotate(-300deg);">
-            <span>4</span></div>
+            <span>4</span>
+        </div>
 
         <!-- Outer circles -->
         <div class="circle 8"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(0deg) translate(150px) rotate(0deg);">
-            <span>8</span></div>
+            <span>8</span>
+        </div>
         <div class="circle 12"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(60deg) translate(150px) rotate(-60deg);">
-            <span>12</span></div>
+            <span>12</span>
+        </div>
         <div class="circle 11"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(120deg) translate(150px) rotate(-120deg);">
-            <span>11</span></div>
+            <span>11</span>
+        </div>
         <div class="circle 5"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(180deg) translate(150px) rotate(-180deg);">
-            <span>5</span></div>
+            <span>5</span>
+        </div>
         <div class="circle 1"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(240deg) translate(150px) rotate(-240deg);">
-            <span>1</span></div>
+            <span>1</span>
+        </div>
         <div class="circle 2"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(300deg) translate(150px) rotate(-300deg);">
-            <span>2</span></div>
+            <span>2</span>
+        </div>
 
         <!-- Outer circles -->
         <div class="unit_text"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(0deg) translate(112px) rotate(0deg);">
-            <span>14</span></div>
+            <span>14</span>
+        </div>
         <div class="unit_text"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(60deg) translate(112px) rotate(-60deg);">
-            <span>15</span></div>
+            <span>15</span>
+        </div>
         <div class="unit_text"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(120deg) translate(112px) rotate(-120deg);">
-            <span>16</span></div>
+            <span>16</span>
+        </div>
         <div class="unit_text"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(180deg) translate(112px) rotate(-180deg);">
-            <span>11</span></div>
+            <span>11</span>
+        </div>
         <div class="unit_text"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(240deg) translate(112px) rotate(-240deg);">
-            <span>12</span></div>
+            <span>12</span>
+        </div>
         <div class="unit_text"
             style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(300deg) translate(112px) rotate(-300deg);">
-            <span>13</span></div>
+            <span>13</span>
+        </div>
     </div>
     <script>
         function update() {
@@ -318,9 +337,13 @@
                     Voltage6.textContent = parseFloat(data.V6).toFixed(2);
                     const max_value = data.max;
                     const min_value = data.min;
-
+                    var weights = [data.W1, data.W2, data.W3, data.W4, data.W5, data.W6, data.W7, data.W8, data.W9, data.W10, data.W11, data.W12];
                     const is_weight = (value) => {
-                        return value >= min_value && value <= max_value;
+                        if (value == "true") {
+                            return true;
+                        } else {
+                            return false;
+                        }
                     }
                     const set_color = (index, state) => {
                         if (state)
@@ -329,18 +352,19 @@
                             circleArray[index].style.backgroundColor = "#white";
                         }
                     }
-                    set_color(6, is_weight(data.F1));
-                    set_color(5, is_weight(data.B1));
-                    set_color(3, is_weight(data.F2));
-                    set_color(1, is_weight(data.B2));
-                    set_color(4, is_weight(data.F3));
-                    set_color(2, is_weight(data.B3));
-                    set_color(7, is_weight(data.F4));
-                    set_color(8, is_weight(data.B4));
-                    set_color(10, is_weight(data.F5));
-                    set_color(12, is_weight(data.B5));
-                    set_color(9, is_weight(data.F6));
-                    set_color(11, is_weight(data.B6));
+                    set_color(1, is_weight(weights[0]));
+                    set_color(2, is_weight(weights[1]));
+                    set_color(3, is_weight(weights[2]));
+                    set_color(4, is_weight(weights[3]));
+                    set_color(5, is_weight(weights[4]));
+                    set_color(6, is_weight(weights[5]));
+                    set_color(7, is_weight(weights[6]));
+                    set_color(8, is_weight(weights[7]));
+                    set_color(9, is_weight(weights[8]));
+                    set_color(10, is_weight(weights[9]));
+                    set_color(11, is_weight(weights[10]));
+                    set_color(12, is_weight(weights[11]));
+
                 })
                 .catch(error => {
                     console.error('Error:', error);
