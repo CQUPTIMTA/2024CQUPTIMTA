@@ -15,6 +15,7 @@
 #include "rechtml.hpp"
 #include "testhtml.hpp"
 #include "calihtml.hpp"
+#include <algorithm>
 #define WIFI_SSID "CQUPTIMTA2"        //AP名称
 #define WIFI_PASSWORD "znzzjsxh"                 //WiFi密码
 
@@ -169,8 +170,9 @@ void handleData(){
           responseDoc["B"+String(i)]=b_data[i-1];
           responseDoc["V"+String(i)]=Voltage[i-1];
         }
+        commands::get_weight_point();
         for (int i = 1; i <= 12; i++){
-          if(commands::weight_points.find(i)!=commands::weight_points.end()){
+          if(std::find(commands::now_weights_id.begin(),commands::now_weights_id.end(),i)!=commands::now_weights_id.end()){//查找list
             responseDoc["W"+String(i)]="true";
           }else{
             responseDoc["W"+String(i)]="false";

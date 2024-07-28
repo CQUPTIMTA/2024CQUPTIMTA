@@ -33,39 +33,53 @@ namespace commands{
         }
         return false;
     }
+    bool wait_package(int id ,String name,int timeout=1000,bool need_show=true){
+        delay(300);
+        int i=0;
+        name=String(id)+name;
+        while(receive_datas_with_ID.find(name)==receive_datas_with_ID.end()){
+            delay(10);
+            i++;
+            if(i>timeout/10){
+                if(need_show) shell.println(F("time out"));
+                return true;
+            }
+        }
+        return false;
+    }
     bool test(int id){
         esp_now_send_package(package_type_request,id,"test",nullptr,0);
-        if(wait_package("test")) return 0;
-        receive_datas.erase("test");
+        if(wait_package(id,"test")) return 0;
+        receive_datas_with_ID.erase(String(id)+"test");
         return 1;
     }
     float get_x(int id){
         esp_now_send_package(package_type_request,id,"get_x",nullptr,0);
-        if(wait_package("get_x")) return 0;
-        float data = *(float*)receive_datas["get_x"].data;
-        receive_datas.erase("get_x");
+        if(wait_package(id,"get_x")) return 0;
+        float data = *(float*)receive_datas_with_ID["get_x"].data;
+        receive_datas_with_ID.erase(String(id)+"get_x");
         return data ;
     }
     float get_y(int id){
         esp_now_send_package(package_type_request,id,"get_y",nullptr,0);
-        if(wait_package("get_y")) return 0;
-        float data = *(float*)receive_datas["get_y"].data;
-        receive_datas.erase("get_y");
+        if(wait_package(id,"get_y")) return 0;
+        float data = *(float*)receive_datas_with_ID[String(id)+"get_y"].data;
+        receive_datas_with_ID.erase(String(id)+"get_y");
         return data ;
     }
 
     float get_z(int id){
         esp_now_send_package(package_type_request,id,"get_z",nullptr,0);
-        if(wait_package("get_z")) return 0;
-        float data=*(float*)receive_datas["get_z"].data;
-        receive_datas.erase("get_z");
+        if(wait_package(id,"get_z")) return 0;
+        float data=*(float*)receive_datas_with_ID[String(id)+"get_z"].data;
+        receive_datas_with_ID.erase(String(id)+"get_z");
         return data ;
     }
     float get_servo_temp(int id){
         esp_now_send_package(package_type_request,id,"get_servo_temp",nullptr,0);
-        if(wait_package("get_servo_temp")) return 0;
-        float data=*(float*)receive_datas["get_servo_temp"].data;
-        receive_datas.erase("get_servo_temp");
+        if(wait_package(id,"get_servo_temp")) return 0;
+        float data=*(float*)receive_datas_with_ID[String(id)+"get_servo_temp"].data;
+        receive_datas_with_ID.erase(String(id)+"get_servo_temp");
         return data;
     }
 
@@ -110,8 +124,8 @@ namespace commands{
         memcpy(data+4,&_speed,4);
         memcpy(data+8,&_acce,4);
         esp_now_send_package(package_type_request,id,"move_y",data,12);
-        if(wait_package("move_y")) return ;
-        receive_datas.erase("move_y");
+        if(wait_package(id,"move_y")) return ;
+        receive_datas_with_ID.erase(String(id)+"move_y");
         return ; 
     }
     void move_to_y(int id ,float point,int speed=1000,int acce=220){
@@ -123,8 +137,8 @@ namespace commands{
         memcpy(data+4,&_speed,4);
         memcpy(data+8,&_acce,4);
         esp_now_send_package(package_type_request,id,"move_to_y",data,12);
-        if(wait_package("move_to_y")) return ;
-        receive_datas.erase("move_to_y");
+        if(wait_package(id,"move_to_y")) return ;
+        receive_datas_with_ID.erase(String(id)+"move_to_y");
         return ;
     }
     void move_z(int id ,float point,int speed=1000,int acce=250){
@@ -136,8 +150,8 @@ namespace commands{
         memcpy(data+4,&_speed,4);
         memcpy(data+8,&_acce,4);
         esp_now_send_package(package_type_request,id,"move_z",data,12);
-        if(wait_package("move_z")) return ;
-        receive_datas.erase("move_z");
+        if(wait_package(id,"move_z")) return ;
+        receive_datas_with_ID.erase(String(id)+"move_z");
         return ;
     }
     void move_to_z(int id ,float point,int speed=1000,int acce=250,bool need_wait=true){
@@ -150,8 +164,8 @@ namespace commands{
         memcpy(data+8,&_acce,4);
         esp_now_send_package(package_type_request,id,"move_to_z",data,12);
         if(!need_wait) return ;
-        if(wait_package("move_to_z")) return ;
-        receive_datas.erase("move_to_z");
+        if(wait_package(id,"move_to_z")) return ;
+        receive_datas_with_ID.erase(String(id)+"move_to_z");
         return ;
     }
     void move_x(int id ,float point,int speed=250,int acce=220){
@@ -163,8 +177,8 @@ namespace commands{
         memcpy(data+4,&_speed,4);
         memcpy(data+8,&_acce,4);
         esp_now_send_package(package_type_request,id,"move_x",data,12);
-        if(wait_package("move_x")) return ;
-        receive_datas.erase("move_x");
+        if(wait_package(id,"move_x")) return ;
+        receive_datas_with_ID.erase(String(id)+"move_x");
         return ;
     }
     void move_to_x(int id ,float point,int speed=800,int acce=220){
@@ -176,16 +190,16 @@ namespace commands{
         memcpy(data+4,&_speed,4);
         memcpy(data+8,&_acce,4);
         esp_now_send_package(package_type_request,id,"move_to_x",data,12);
-        if(wait_package("move_to_x")) return ;
-        receive_datas.erase("move_to_x");
+        if(wait_package(id,"move_to_x")) return ;
+        receive_datas_with_ID.erase(String(id)+"move_to_x");
         return ;
     }
     void grap(int id,bool state,int delay_time=700){
         bool _state=state;
         esp_now_send_package(package_type_request,id,"grap",(uint8_t*)&_state,1);
         delay(delay_time);
-        if(wait_package("grap")) return ;
-        receive_datas.erase("grap");
+        if(wait_package(id,"grap")) return ;
+        receive_datas_with_ID.erase(String(id)+"grap");
         return ;
     }
     void enable(int id,char axis,bool state){
@@ -206,9 +220,9 @@ namespace commands{
     bool is_moveing(int id,char axis){
         char _axis=axis;
         esp_now_send_package(package_type_request,id,"is_moveing",(uint8_t*)&_axis,1);
-        if(wait_package("is_moveing")) return 1;
-        bool state=*(bool*)receive_datas["is_moveing"].data;
-        receive_datas.erase("is_moveing");
+        if(wait_package(id,"is_moveing")) return 1;
+        bool state=*(bool*)receive_datas_with_ID[String(id)+"is_moveing"].data;
+        receive_datas_with_ID.erase(String(id)+"is_moveing");
         return state;
     }
     void wait (int _id,char axis,int dey_time=300,int wHZ=4){
@@ -1034,22 +1048,21 @@ int read_servo_angle(int argc, char** args){
 }
 
 int set_servo_angle(int argc, char** args){
-    if (argc != 5) {
+    if (argc != 4) {
         shell.println("bad argument count");
         shell.println(help_map["set_servo_angle"]);
         return -1;
     }
     int _id=strtod(args[1],NULL);
-    char axis=args[2][0];
-    bool state=strtod(args[3],NULL);
-    float angle=strtod(args[4],NULL);
+    bool state=strtod(args[2],NULL);
+    float angle=strtod(args[3],NULL);
     if(_id>20||_id<0){
         shell.println(F("data error"));
         return -1;
     }
-    uint8_t data[6]{axis,state,0,0,0,0};
-    memcpy(data+2,&angle,4);
-    esp_now_send_package(package_type_request,_id,"set_servo_angle",(uint8_t*)&data,6);
+    uint8_t data[5]{state,0,0,0,0};
+    memcpy(data+1,&angle,4);
+    esp_now_send_package(package_type_request,_id,"set_servo_angle",(uint8_t*)&data,5);
     if(wait_package("set_servo_angle")) return 0;
     receive_datas.erase("set_servo_angle");
     shell.println(F("set servo angle success"));

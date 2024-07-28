@@ -351,7 +351,7 @@ const char* rechtml = R"rawliteral(
                         if (state)
                             circleArray[index].style.backgroundColor = "#219ebc";
                         else {
-                            circleArray[index].style.backgroundColor = "#white";
+                            circleArray[index].style.backgroundColor = "white";
                         }
                     }
                     set_color(1, is_weight(weights[0]));

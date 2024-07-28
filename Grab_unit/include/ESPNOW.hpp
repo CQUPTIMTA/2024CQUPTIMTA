@@ -15,6 +15,8 @@ extern int ID;
 int last_time_receive_time=0;
 
 uint8_t receive_MACAddress[] ={0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
+//广播包地址
+uint8_t broadcast_MACAddress[] ={0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 esp_now_peer_info_t peerInfo;
 
 enum package_type {
@@ -151,8 +153,7 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
 
   };
   //如果有对应的回调函数，则执行
-  xTaskCreate(
-	  package_response, "package_response_task", 8192, &re_data, 1, NULL);
+  xTaskCreate(package_response, "package_response_task", 8192, NULL, 1, NULL);
   last_time_receive_time=millis();
 }
 
@@ -174,8 +175,18 @@ void esp_now_send_package(package_type type,int _id,String name,uint8_t* data,in
   uint8_t send_data_array[send_data.name_len+send_data.data_len+7];
   //结构体到数组
   send_data.get_data(send_data_array);
-  //发送
-  esp_err_t err = esp_now_send(receive_MAC,send_data_array,send_data.get_len());
+  if(memcmp(receive_MAC,broadcast_MACAddress,6) == 0){
+    esp_now_send(receive_MAC,send_data_array,send_data.get_len());
+  }else{
+    for(int i=0;i<5;i++){
+      //发送
+      auto err = esp_now_send(receive_MAC,send_data_array,send_data.get_len());
+      if(err==ESP_OK){
+        break;
+      }
+      delay(20);
+    }
+  }
 }
 
 

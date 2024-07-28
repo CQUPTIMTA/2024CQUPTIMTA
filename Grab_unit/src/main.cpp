@@ -224,24 +224,28 @@ namespace EspnowCallback{
   };
   //自动校准零点
   void auto_rezero(data_package redata){
-    GrapUnit::rezero();
     esp_now_send_package(package_type_response,redata.id,"auto_rezero",nullptr,0,receive_MACAddress);
+    GrapUnit::rezero();
+    
   }
   //移动x轴上的绝对位移（相对于全局坐标系）
   void move_to_x(data_package redata){
+    esp_now_send_package(package_type_response,redata.id,"move_to_x",nullptr,0,receive_MACAddress);
     float y=*(float*)redata.data;
     float speed=*(float*)(redata.data+4);
     float acce=*(float*)(redata.data+8);
+    
     GrapUnit::move_to_x(y,speed,acce);
-    esp_now_send_package(package_type_response,redata.id,"move_to_x",nullptr,0,receive_MACAddress);
+    
   }
 //移动X轴上的相对位移（相对于当前位置）
   void move_x(data_package redata){
     float delta_x=*(float*)redata.data;
     float speed=*(float*)(redata.data+4);
     float acce=*(float*)(redata.data+8);
-    GrapUnit::move_to_x(delta_x+GrapUnit::get_now_location_x(),speed,acce);
     esp_now_send_package(package_type_response,redata.id,"move_x",nullptr,0,receive_MACAddress);
+    GrapUnit::move_to_x(delta_x+GrapUnit::get_now_location_x(),speed,acce);
+    
   }
   //获取X轴当前位置
   void get_x(data_package redata){
@@ -253,8 +257,9 @@ namespace EspnowCallback{
     float y=*(float*)redata.data;
     float speed=*(float*)(redata.data+4);
     float acce=*(float*)(redata.data+8);
-    GrapUnit::move_to_z(y,speed,acce);
     esp_now_send_package(package_type_response,redata.id,"move_to_z",nullptr,0,receive_MACAddress);
+    GrapUnit::move_to_z(y,speed,acce);
+    
   }
   //移动Z轴上的相对位移（相对于当前位置）
   void move_z(data_package redata){
@@ -296,8 +301,9 @@ namespace EspnowCallback{
   //机械爪的开合
   void grap(data_package redata){
     bool flag = redata.data[0];
-    GrapUnit::grap(flag);
     esp_now_send_package(package_type_response,redata.id,"grap",nullptr,0,receive_MACAddress);
+    GrapUnit::grap(flag);
+    
   }
 
   //获取电机电压
@@ -330,25 +336,12 @@ namespace EspnowCallback{
   }
   //设置舵机角度
   void set_servo_angle(data_package redata){
-    char axis=redata.data[0];
-    bool state=*(bool*)(redata.data+1);
-    float set_angle=*(float*)(redata.data+2);
-    if(axis=='G'){
-      if(state)
-        GrapUnit::DATA.grap_servo_open=set_angle;
-      else
-        GrapUnit::DATA.grap_servo_close=set_angle;
-    }else if(axis=='X'){
-      if(state)
-        GrapUnit::DATA.senser_x_up=set_angle;
-      else
-        GrapUnit::DATA.senser_x_down=set_angle;
-    }else if(axis=='Y'){
-      if(state)
-        GrapUnit::DATA.senser_y_up=set_angle;
-      else
-        GrapUnit::DATA.senser_y_down=set_angle;
-    }
+    bool state=*(bool*)(redata.data);
+    float set_angle=*(float*)(redata.data+1);
+    if(state)
+      GrapUnit::DATA.grap_servo_open=set_angle;
+    else
+      GrapUnit::DATA.grap_servo_close=set_angle;
     GrapUnit::DATA.write();
     esp_now_send_package(package_type_response,redata.id,"set_servo_angle",nullptr,0,receive_MACAddress);
   }

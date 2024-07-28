@@ -5,6 +5,14 @@
  */
 #include "commands.hpp"
 #include "web.hpp"
+
+TaskHandle_t  weight_task_handler=nullptr;
+void weight_task(void * pvParameters) {
+  while (1) {
+    commands::get_weight_point();
+    delay(1000);
+  }
+}
 void add_help(){
   help_map["clear"]=F("clear");
   help_map["info"]=F("info");
@@ -49,7 +57,7 @@ int help(int argc = 0, char** argv = NULL) {
 
 
 
-float ground_hight=4;//抓取高度
+float ground_hight=10;//抓取高度
 float release_hight=220;//放下高度
 float safe_distance=40;//安全距离
 TaskHandle_t ID6task_handler=nullptr;
@@ -156,6 +164,8 @@ void ID8task(void * pvParameters) {
 
 TaskHandle_t main_func_handler=nullptr;
 void main_func(void * pvParameters) {
+  vTaskDelete(weight_task_handler);
+  weight_task_handler=nullptr;
   ID6complite=false; //6号横梁抓完标志
   ID8complite=false; //8号横梁抓完标志
   commands::all_z_to_height(120);
@@ -177,7 +187,6 @@ void main_func(void * pvParameters) {
   //commands::move_to_x(3,commands::ID7Crossbeam_weight.x);
   commands::move_to_x(4,get_max_x(commands::ID8Crossbeam_weight));//X小的分配给4号
   commands::move_to_x(5,get_mini_x(commands::ID8Crossbeam_weight));//X大的分配给5号
-  Serial.println("start");
   xTaskCreate(ID6task, "ID6task", 4096, NULL, 5, &ID6task_handler);//创建6号横梁的任务
   xTaskCreate(ID8task, "ID8task", 4096, NULL, 5, &ID8task_handler);//创建8号横梁的任务
 
@@ -200,7 +209,7 @@ void main_func(void * pvParameters) {
   commands::wait(7,'Y');
 
   commands::grap(3,0,700);//抓取
-  commands::move_to_z(3,120);
+  commands::move_to_z(3,125);
   delay(500);
   commands::move_to_y(7,2750);
   commands::wait(7,'Y');
@@ -220,12 +229,17 @@ void main_func(void * pvParameters) {
   commands::buzz(7,0);
   commands::buzz(8,0);
   main_func_handler=nullptr;
+
+  if(weight_task_handler==nullptr){
+    xTaskCreate(weight_task, "weight_task", 2048, NULL, 3, &weight_task_handler);
+  }
+
   vTaskDelete(NULL);
 }
 
 
 int main_func_task(int argc = 0, char** argv = NULL) {
-  if(main_func_handler!=nullptr){
+  if(main_func_handler==nullptr){
     xTaskCreatePinnedToCore(main_func, "main_task", 8192, NULL, 8, &main_func_handler,1);
   }
   return 0;
@@ -287,6 +301,7 @@ void add_shell_commands() {
   shell.addCommand(F("gw"),get_weight);
 }
 
+
 void setup() {
   Serial.begin(115200);
   pinMode(LED,OUTPUT);
@@ -299,15 +314,15 @@ void setup() {
   esp_now_setup();
   digitalWrite(LED,0);
   xTaskCreatePinnedToCore(cmd_task, "cmd_task", 4096, NULL, 5, NULL,0);
-  xTaskCreatePinnedToCore(web_task, "web_task", 8182, NULL, 4, NULL,1);
+  xTaskCreatePinnedToCore(web_task, "web_task", 8182, NULL, 4, NULL,1); 
+  xTaskCreate(weight_task, "weight_task", 2048, NULL, 3, &weight_task_handler);
   
   commands::ID6Crossbeam_weight.push_back(commands::weight_points[1]);
   commands::ID6Crossbeam_weight.push_back(commands::weight_points[9]);
   commands::ID7Crossbeam_weight=commands::weight_points[5];
   commands::ID8Crossbeam_weight.push_back(commands::weight_points[4]);
-  commands::ID8Crossbeam_weight.push_back(commands::weight_points[12])
+  commands::ID8Crossbeam_weight.push_back(commands::weight_points[12]);
 }
-
 void loop() {
   delay(3000);
 }

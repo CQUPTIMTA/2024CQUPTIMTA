@@ -180,6 +180,7 @@ void esp_now_send_package(package_type type,int _id,String name,uint8_t* data,in
   for (int i = 0; i < MAX_RETRY; i++){
     auto send_status = esp_now_send(receive_MAC,send_data_array,send_data.get_len());
     if(send_status == ESP_OK) break;
+    delay(20);
   }
 }
 

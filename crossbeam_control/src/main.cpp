@@ -170,8 +170,8 @@ namespace EspnowCallback {
         esp_now_send_package(package_type_response,redata.id,"get_voltage",(uint8_t*)&voltage,sizeof(voltage),receive_MACAddress);
     }
     void is_moving(data_package redata){
-        bool is_moving=CROSSBEAM::is_moving();
-        esp_now_send_package(package_type_response,redata.id,"is_moveing",(uint8_t*)&is_moving,sizeof(is_moving),receive_MACAddress);
+        bool is_moving_state=CROSSBEAM::is_moving();
+        esp_now_send_package(package_type_response,redata.id,"is_moveing",(uint8_t*)&is_moving_state,sizeof(is_moving_state),receive_MACAddress);
     }
     void set_now_location_y(data_package redata){
         float y=*(float*)redata.data;

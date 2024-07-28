@@ -102,8 +102,9 @@ struct data_package {
 
 
 
-
 std::map<String, data_package> receive_datas;//接收数据缓存
+//2024.7.28,发现多个接收包没有ID区分会干扰添加了下面的map,以实现API兼容的情况下改善
+std::map<String, data_package> receive_datas_with_ID;//接收数据缓存带ID
 std::map<int, String> susscess_actions;//成功执行的动作
 
 
@@ -127,6 +128,8 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
     return ;
   }
   receive_datas[String(re_data.name,re_data.name_len)]=re_data;
+
+  receive_datas_with_ID[String(re_data.id)+String(re_data.name)]=re_data;
 
 
 }
