@@ -159,6 +159,10 @@ void esp_now_setup() {
 //通过espnow发送数据
 void esp_now_send_package(package_type type,int _id,String name,uint8_t* data,int datalen,uint8_t* receive_MAC=receive_MACAddress){
 
+  if(receive_datas.find(String(_id)+name)!=receive_datas.end()){
+    receive_datas_with_ID.erase(String(_id)+name);
+  }
+  
   data_package send_data;
   send_data.packge_type=type;
   send_data.id=_id;
@@ -168,8 +172,6 @@ void esp_now_send_package(package_type type,int _id,String name,uint8_t* data,in
   for(int i=0;i<datalen;i++){
     send_data.data[i]=data[i];
   }
-  
-
   send_data.name_len=name.length();
   send_data.data_len=datalen;
   send_data.add_checksum();

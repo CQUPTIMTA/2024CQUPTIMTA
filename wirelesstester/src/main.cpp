@@ -244,7 +244,7 @@ void main_func(void * pvParameters) {
 
 int main_func_task(int argc = 0, char** argv = NULL) {
   if(main_func_handler==nullptr){
-    xTaskCreatePinnedToCore(main_func, "main_task", 8192, NULL, 8, &main_func_handler,1);
+    xTaskCreate(main_func, "main_task", 8192, NULL, 8, &main_func_handler);
   }
   return 0;
 }
@@ -317,8 +317,8 @@ void setup() {
 
   esp_now_setup();
   digitalWrite(LED,0);
-  xTaskCreatePinnedToCore(cmd_task, "cmd_task", 4096, NULL, 5, NULL,0);
-  xTaskCreatePinnedToCore(web_task, "web_task", 8182, NULL, 4, NULL,1); 
+  xTaskCreate(cmd_task, "cmd_task", 4096, NULL, 5, NULL);
+  xTaskCreate(web_task, "web_task", 8182, NULL, 4, NULL); 
   //xTaskCreate(weight_task, "weight_task", 2048, NULL, 3, &weight_task_handler);
   
   commands::ID6Crossbeam_weight.push_back(commands::weight_points[1]);

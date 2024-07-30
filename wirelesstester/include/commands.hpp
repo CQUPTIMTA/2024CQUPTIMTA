@@ -194,10 +194,11 @@ namespace commands{
         receive_datas_with_ID.erase(String(id)+"move_to_x");
         return ;
     }
-    void grap(int id,bool state,int delay_time=700){
+    void grap(int id,bool state,int delay_time=700,bool need_response=true){
         bool _state=state;
         esp_now_send_package(package_type_request,id,"grap",(uint8_t*)&_state,1);
         delay(delay_time);
+        if(!need_response) return ;
         if(wait_package(id,"grap")) return ;
         receive_datas_with_ID.erase(String(id)+"grap");
         return ;
@@ -210,9 +211,10 @@ namespace commands{
         uint8_t datas[2]={pra,pra2};
         esp_now_send_package(package_type_request,_id,"enable",datas,2);
     }
-    void buzz(int id,bool state){
+    void buzz(int id,bool state,bool need_response=true){
         bool _state=state;
         esp_now_send_package(package_type_request,id,"buzz",(uint8_t*)&_state,1);
+        if(!need_response) return ;
         if(wait_package("buzz")) return ;
         receive_datas.erase("buzz");
         return ;
