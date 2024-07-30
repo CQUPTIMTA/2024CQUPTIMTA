@@ -127,11 +127,9 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
     susscess_actions[re_data.id]=String((char*)re_data.data);
     return ;
   }
+
   receive_datas[String(re_data.name,re_data.name_len)]=re_data;
-
-  receive_datas_with_ID[String(re_data.id)+String(re_data.name)]=re_data;
-
-
+  receive_datas_with_ID[String(re_data.id)+String(re_data.name,re_data.name_len)]=re_data;
 }
 
 

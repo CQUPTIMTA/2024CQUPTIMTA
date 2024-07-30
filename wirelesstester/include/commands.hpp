@@ -56,7 +56,7 @@ namespace commands{
     float get_x(int id){
         esp_now_send_package(package_type_request,id,"get_x",nullptr,0);
         if(wait_package(id,"get_x")) return 0;
-        float data = *(float*)receive_datas_with_ID["get_x"].data;
+        float data = *(float*)receive_datas_with_ID[String(id)+"get_x"].data;
         receive_datas_with_ID.erase(String(id)+"get_x");
         return data ;
     }
@@ -154,7 +154,7 @@ namespace commands{
         receive_datas_with_ID.erase(String(id)+"move_z");
         return ;
     }
-    void move_to_z(int id ,float point,int speed=1000,int acce=250,bool need_wait=true){
+    void move_to_z(int id ,float point,int speed=600,int acce=240,bool need_wait=true){
         uint8_t data[12];
         float _point=point;
         float _speed=speed;
@@ -164,8 +164,8 @@ namespace commands{
         memcpy(data+8,&_acce,4);
         esp_now_send_package(package_type_request,id,"move_to_z",data,12);
         if(!need_wait) return ;
-        if(wait_package(id,"move_to_z")) return ;
-        receive_datas_with_ID.erase(String(id)+"move_to_z");
+        // if(wait_package(id,"move_to_z")) return ;
+        // receive_datas_with_ID.erase(String(id)+"move_to_z");
         return ;
     }
     void move_x(int id ,float point,int speed=250,int acce=220){
@@ -364,9 +364,11 @@ namespace commands{
     }
     void all_x_y_to_setup_point(){
         Serial.println("all_x_y_to_setup_point");
-        move_to_y(6,1000);
-        move_to_y(7,1550);
+
         move_to_y(8,2100);
+        move_to_y(7,1550);
+        delay(1000);
+        move_to_y(6,1000);
         move_to_x(1,1487);
         move_to_x(2,513);
         move_to_x(3,1000);

@@ -57,7 +57,7 @@ int help(int argc = 0, char** argv = NULL) {
 
 
 
-float ground_hight=10;//抓取高度
+float ground_hight=4;//抓取高度
 float release_hight=220;//放下高度
 float safe_distance=40;//安全距离
 TaskHandle_t ID6task_handler=nullptr;
@@ -155,7 +155,7 @@ void ID8task(void * pvParameters) {
   ID8task_handler=nullptr;
   commands::wait(8,'Y');
 
-  delay(2000);//等砝码稳定
+  delay(1000);//等砝码稳定
   commands::grap(4,1,0);
   commands::grap(5,1,0);
   ID8complite=true;
@@ -164,7 +164,8 @@ void ID8task(void * pvParameters) {
 
 TaskHandle_t main_func_handler=nullptr;
 void main_func(void * pvParameters) {
-  vTaskDelete(weight_task_handler);
+  // vTaskDelete(weight_task_handler);
+  commands::get_weight_point();
   weight_task_handler=nullptr;
   ID6complite=false; //6号横梁抓完标志
   ID8complite=false; //8号横梁抓完标志
@@ -208,18 +209,21 @@ void main_func(void * pvParameters) {
   commands::move_y(7,-1*safe_distance);
   commands::wait(7,'Y');
 
-  commands::grap(3,0,700);//抓取
+  commands::grap(3,0,500);//抓取
   commands::move_to_z(3,125);
-  delay(500);
+  delay(200);
   commands::move_to_y(7,2750);
   commands::wait(7,'Y');
-  delay(1000);//等砝码稳定
+  delay(200);//等砝码稳定
   commands::grap(3,1,0);
   
   //等待执行完毕
   while(!ID8complite||!ID6complite){
     delay(10);
   }
+  commands::move_y(6,30);
+  commands::move_y(7,30);
+  commands::move_y(8,30);
   //执行完毕,蜂鸣器响
   commands::buzz(6,1);
   commands::buzz(7,1);
@@ -230,9 +234,9 @@ void main_func(void * pvParameters) {
   commands::buzz(8,0);
   main_func_handler=nullptr;
 
-  if(weight_task_handler==nullptr){
-    xTaskCreate(weight_task, "weight_task", 2048, NULL, 3, &weight_task_handler);
-  }
+  // if(weight_task_handler==nullptr){
+  //   xTaskCreate(weight_task, "weight_task", 2048, NULL, 3, &weight_task_handler);
+  // }
 
   vTaskDelete(NULL);
 }
@@ -315,7 +319,7 @@ void setup() {
   digitalWrite(LED,0);
   xTaskCreatePinnedToCore(cmd_task, "cmd_task", 4096, NULL, 5, NULL,0);
   xTaskCreatePinnedToCore(web_task, "web_task", 8182, NULL, 4, NULL,1); 
-  xTaskCreate(weight_task, "weight_task", 2048, NULL, 3, &weight_task_handler);
+  //xTaskCreate(weight_task, "weight_task", 2048, NULL, 3, &weight_task_handler);
   
   commands::ID6Crossbeam_weight.push_back(commands::weight_points[1]);
   commands::ID6Crossbeam_weight.push_back(commands::weight_points[9]);

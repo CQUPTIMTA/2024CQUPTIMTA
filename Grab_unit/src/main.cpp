@@ -128,6 +128,21 @@ namespace GrapUnit{
     Z_motor.speed_control(0,0);
     Z_motor.angle_reset();
   }
+  void move_to_grund(){
+    if(digitalRead(37)){
+      Z_motor.speed_control(-60*DATA.Zdirection,0);
+    }
+    while(digitalRead(37)){
+      delay(1);
+    }
+    Z_motor.pulse_control(3000*1*DATA.Zdirection,30);
+    delay(1000);
+    Z_motor.speed_control(-10*DATA.Zdirection,0);
+    while(digitalRead(37)){
+      delay(1);
+    }
+    Z_motor.speed_control(0,0);
+  }
 
 
   /* 获取Z轴当前高度         */
@@ -269,6 +284,17 @@ namespace EspnowCallback{
     GrapUnit::move_to_z(delta_z+GrapUnit::get_location_z(),speed,acce);
     esp_now_send_package(package_type_response,redata.id,"move_z",nullptr,0,receive_MACAddress);
   }
+
+  void rezeroZ(data_package redata){
+    esp_now_send_package(package_type_response,redata.id,"rezeroZ",nullptr,0,receive_MACAddress);
+    GrapUnit::rezero_Z();
+  }
+  void move_to_grund(data_package redata){
+    esp_now_send_package(package_type_response,redata.id,"movetogrund",nullptr,0,receive_MACAddress);
+    GrapUnit::move_to_grund();
+  }
+
+
   //获取Z轴当前位置
   void get_z(data_package redata){
     float z=GrapUnit::get_location_z();
@@ -358,6 +384,8 @@ namespace EspnowCallback{
     callback_map["move_x"]=move_x;
     callback_map["move_to_z"]=move_to_z;
     callback_map["move_z"]=move_z;
+    callback_map["movetogrund"]=move_to_grund;
+    callback_map["rezeroZ"]=rezeroZ;
     callback_map["enable"]=enable;
     callback_map["set_zero_point"]=set_zero_point;
     callback_map["laser"]=laser;
@@ -402,10 +430,13 @@ void setup() {
   GrapUnit::DATA.read();
 
 
-  // GrapUnit::DATA.ID=3;
-  // GrapUnit::DATA.X_ZERO_POINT=1805.14;
-  // GrapUnit::DATA.grap_servo_open=105.0;
-  // GrapUnit::DATA.grap_servo_close=47.0;
+  // GrapUnit::DATA.ID=5;
+  // GrapUnit::DATA.X_ZERO_POINT=128.29;
+  // GrapUnit::DATA.grap_servo_open=139;
+  // GrapUnit::DATA.grap_servo_close=195;
+  // GrapUnit::DATA.offset_dir=-1;
+  // GrapUnit::DATA.Xdirection=-1;
+  // GrapUnit::DATA.Zdirection=-1;
   // GrapUnit::DATA.write();
   //初始化引脚
   PINSetup();
@@ -429,7 +460,9 @@ void loop() {
     digitalWrite(7,0);
     delay(300);
   }
-
+  // Serial.println(GrapUnit::DATA.X_ZERO_POINT);
+  // Serial.println(GrapUnit::DATA.grap_servo_open);
+  // Serial.println(GrapUnit::DATA.grap_servo_close);
   delay(1000);
 
 }
