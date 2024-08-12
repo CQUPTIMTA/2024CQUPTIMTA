@@ -124,8 +124,8 @@ namespace commands{
         memcpy(data+4,&_speed,4);
         memcpy(data+8,&_acce,4);
         esp_now_send_package(package_type_request,id,"move_y",data,12);
-        if(wait_package(id,"move_y")) return ;
-        receive_datas_with_ID.erase(String(id)+"move_y");
+        // if(wait_package(id,"move_y")) return ;
+        // receive_datas_with_ID.erase(String(id)+"move_y");
         return ; 
     }
     void move_to_y(int id ,float point,int speed=1000,int acce=220){
@@ -137,8 +137,8 @@ namespace commands{
         memcpy(data+4,&_speed,4);
         memcpy(data+8,&_acce,4);
         esp_now_send_package(package_type_request,id,"move_to_y",data,12);
-        if(wait_package(id,"move_to_y")) return ;
-        receive_datas_with_ID.erase(String(id)+"move_to_y");
+        // if(wait_package(id,"move_to_y")) return ;
+        // receive_datas_with_ID.erase(String(id)+"move_to_y");
         return ;
     }
     void move_z(int id ,float point,int speed=1000,int acce=250){
@@ -150,8 +150,8 @@ namespace commands{
         memcpy(data+4,&_speed,4);
         memcpy(data+8,&_acce,4);
         esp_now_send_package(package_type_request,id,"move_z",data,12);
-        if(wait_package(id,"move_z")) return ;
-        receive_datas_with_ID.erase(String(id)+"move_z");
+        // if(wait_package(id,"move_z")) return ;
+        // receive_datas_with_ID.erase(String(id)+"move_z");
         return ;
     }
     void move_to_z(int id ,float point,int speed=600,int acce=240,bool need_wait=true){
@@ -177,8 +177,8 @@ namespace commands{
         memcpy(data+4,&_speed,4);
         memcpy(data+8,&_acce,4);
         esp_now_send_package(package_type_request,id,"move_x",data,12);
-        if(wait_package(id,"move_x")) return ;
-        receive_datas_with_ID.erase(String(id)+"move_x");
+        // if(wait_package(id,"move_x")) return ;
+        // receive_datas_with_ID.erase(String(id)+"move_x");
         return ;
     }
     void move_to_x(int id ,float point,int speed=800,int acce=220){
@@ -190,17 +190,16 @@ namespace commands{
         memcpy(data+4,&_speed,4);
         memcpy(data+8,&_acce,4);
         esp_now_send_package(package_type_request,id,"move_to_x",data,12);
-        if(wait_package(id,"move_to_x")) return ;
-        receive_datas_with_ID.erase(String(id)+"move_to_x");
+        // if(wait_package(id,"move_to_x")) return ;
+        // receive_datas_with_ID.erase(String(id)+"move_to_x");
         return ;
     }
-    void grap(int id,bool state,int delay_time=700,bool need_response=true){
+    void grap(int id,bool state,int delay_time=700){
         bool _state=state;
         esp_now_send_package(package_type_request,id,"grap",(uint8_t*)&_state,1);
         delay(delay_time);
-        if(!need_response) return ;
-        if(wait_package(id,"grap")) return ;
-        receive_datas_with_ID.erase(String(id)+"grap");
+        // if(wait_package(id,"grap")) return ;
+        // receive_datas_with_ID.erase(String(id)+"grap");
         return ;
     }
     void enable(int id,char axis,bool state){
